@@ -11,6 +11,7 @@ namespace Z3
         private MetadataReader reader;
         private Dictionary<string, MetadataPropertyInfo> properties = new();
         private Dictionary<string, MetadataFieldInfo> fields = new();
+        private List<string> attributes = new();
 
         public MetadataClassInfo(TypeDefinition typeDefinition, MetadataReader metadataReader)
         {
@@ -18,6 +19,46 @@ namespace Z3
             reader = metadataReader;
             Name = reader.GetString(typeDef.Name);
             Namespace = reader.GetString(typeDef.Namespace);
+
+            // We are going to look for Custom Attributes.
+            // For now we are only interested in UseInFrontendAttribute.
+            // This code will get those for us. There are a number of 
+            // custom attributes we will skip, but that is OK for now.
+            var propAttributes = typeDef.GetCustomAttributes();
+            foreach (var attributeHandle in propAttributes)
+            {
+                var attribute = reader.GetCustomAttribute(attributeHandle);
+                switch (attribute.Constructor.Kind)
+                {
+                    case HandleKind.MemberReference:
+                    {
+                        var ctor = reader.GetMemberReference((MemberReferenceHandle)attribute.Constructor);
+                        switch (ctor.Parent.Kind)
+                        {
+                            case HandleKind.TypeReference:
+                                var a = reader.GetTypeReference((TypeReferenceHandle)ctor.Parent);
+                                var attr = reader.GetString(a.Name);
+                                attributes.Add(attr);
+                                break;
+                            default:
+                                Console.Error.WriteLine($"{nameof(MetadataClassInfo)}: Attribute.Parent kind is of type {ctor.Parent.Kind}");
+                                break;
+                        }
+                        break;
+                    }
+                    case HandleKind.MethodDefinition:
+                    {
+                        var ctor = reader.GetMethodDefinition((MethodDefinitionHandle)attribute.Constructor);
+                        var attr = ctor.GetDeclaringType().ToTypeString(reader);
+                        attr = attr.Substring(attr.LastIndexOf('.') + 1);
+                        attributes.Add(attr);
+                        break;
+                    }
+                    default:
+                        Console.Error.WriteLine($"{nameof(MetadataClassInfo)}: Attribute.Constructor kind is of type {attribute.Constructor.Kind}");
+                        break;
+                }
+            }
         }
 
         public override void AllClassesLoaded(MetadataInfo? metadataInfo, int depthToLoad)
@@ -100,5 +141,7 @@ namespace Z3
         public string Namespace { get; }
 
         public string FullName { get { return Namespace + "." + Name; } }
+
+        public IReadOnlyList<string> Attributes { get { return attributes.AsReadOnly(); } }
     }
 }
