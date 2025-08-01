@@ -46,23 +46,34 @@ namespace Z3
 
             foreach (var typeDefHandle in reader.TypeDefinitions)
             {
-                var typeDef = reader.GetTypeDefinition(typeDefHandle);
-
-                // If it's namespace is blank, it's not a user-defined type
-                if (string.IsNullOrEmpty(reader.GetString(typeDef.Namespace)))
-                    continue;
-
-                // If it's BaseType is null, it is not something we are interested in
-                if (typeDef.BaseType.IsNil)
-                    continue;
-
-                var typeInfo = new MetadataClassInfo(typeDef, reader);
-
-                classesByName[typeInfo.FullName] = typeInfo;
-                classesByHandle[typeDefHandle] = typeInfo;
+                AddTypeToClass(typeDefHandle);
             }
 
             AllClassesLoaded(this, depthToLoad);
+        }
+
+        private void AddTypeToClass(TypeDefinitionHandle typeDefHandle)
+        {
+            var typeDef = reader.GetTypeDefinition(typeDefHandle);
+
+            // If it's name starts with <>, it's probably an anonymous type
+            if (reader.GetString(typeDef.Name).StartsWith("<>"))
+                return;
+
+            // If it's BaseType is null, it is probably not something we are interested in
+            if (typeDef.BaseType.IsNil)
+                return;
+
+            // Add any nested classes to the list as well.
+            foreach (var subTypeDefinition in typeDef.GetNestedTypes())
+            {
+                AddTypeToClass(subTypeDefinition);
+            }
+
+            var typeInfo = new MetadataClassInfo(typeDef, reader);
+
+            classesByName[typeInfo.FullName] = typeInfo;
+            classesByHandle[typeDefHandle] = typeInfo;
         }
 
         public ReadOnlyDictionary<string, MetadataClassInfo> ClassesByName
