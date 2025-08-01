@@ -61,7 +61,7 @@ namespace Z3
         public string? Type { get; private set; }
 
         public bool IsStandardType { get; private set; }
- 
+
         public IReadOnlyList<string> Attributes { get { return attributes.AsReadOnly(); } }
     }
 }
