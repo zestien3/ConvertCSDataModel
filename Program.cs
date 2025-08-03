@@ -27,7 +27,7 @@ namespace Z3
             [Option('c', "classes", Required = false, HelpText = "The name of the class(es) to convert (including the complete namespace)")]
             public IEnumerable<string>? ClassNames { get; set; }
 
-            [Option('o', "out", Required = false, HelpText = "The folder to which the output files are written or blank if Console.Out is to be used")]
+            [Option('o', "out", Required = false, HelpText = "The folder to which the output files are written. If omitted, Console.Out is used")]
             public string? OutputFolder { get; set; }
         }
 
@@ -38,7 +38,14 @@ namespace Z3
         [STAThread]
         public static void Main(string[] args)
         {
-            cmdLine = Parser.Default.ParseArguments<Options>(args).Value;
+            var parsed = Parser.Default.ParseArguments<Options>(args);
+
+            if (parsed.Errors.Count() > 0)
+            {
+                Environment.Exit(1);
+            }
+
+            cmdLine = parsed.Value;
 
             List<string> classNames = new(cmdLine.ClassNames!);
 
