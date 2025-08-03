@@ -7,14 +7,14 @@ namespace Z3
     internal class MetadataFieldInfo : MetadataInfo
     {
         private FieldDefinition fieldDef;
-        private MetadataReader reader;
         private List<string> attributes = new();
 
-        public MetadataFieldInfo(FieldDefinition fieldDefinition, MetadataReader metadataReader)
+        public MetadataFieldInfo(FieldDefinition fieldDefinition, MetadataClassInfo classInfo, MetadataReader reader, XmlDocumentationFile? xmlDoc) : base(reader, xmlDoc)
         {
             fieldDef = fieldDefinition;
-            reader = metadataReader;
-            Name = reader.GetString(fieldDef.Name);
+            Name = Reader!.GetString(fieldDef.Name);
+
+            XmlMemberName = $"T:{classInfo.FullName}.{Name}";
         }
 
         public override void AllClassesLoaded(MetadataInfo? metadataInfo, int depthToLoad)
@@ -30,7 +30,7 @@ namespace Z3
 
                         foreach (var attributeHandle in fieldDef.GetCustomAttributes())
                         {
-                            var attribute = reader.GetCustomAttribute(attributeHandle);
+                            var attribute = Reader!.GetCustomAttribute(attributeHandle);
                             var customAttribute = attribute.DecodeValue(MetadataCustomAttributeTypeProvider.Instance);
                         }
                     }
@@ -45,6 +45,8 @@ namespace Z3
 
         public string? Type { get; private set; }
 
-        public IReadOnlyList<string> Attributes { get { return attributes.AsReadOnly(); } }
+        public IReadOnlyList<string> Attributes => attributes.AsReadOnly();
+
+        public bool DontSerialize => attributes.Contains("JsonIgnoreAttribute");
     }
 }

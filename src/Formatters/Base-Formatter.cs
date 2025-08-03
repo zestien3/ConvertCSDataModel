@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Text;
+using System.Xml;
 
 namespace Z3
 {
@@ -47,7 +48,7 @@ namespace Z3
                 if (!Usings.Contains(type))
                 {
                     Usings.Add(type);
-                    WriteUsings(property);
+                    WriteUsing(property);
                 }
             }
 
@@ -57,19 +58,40 @@ namespace Z3
             }
 
             OpenNamespace(classInfo);
+
+            WriteXmlNodeAsComment(classInfo.XmlComment);
             OpenClass(classInfo);
-            WriteProperties(classInfo);
+
+            foreach (var property in classInfo.Properties.Values)
+            {
+                WriteXmlNodeAsComment(property.XmlComment);
+                WriteProperty(property);
+            }
+
+            foreach (var field in classInfo.Fields.Values)
+            {
+                // Skip backing fields.
+                if (!field.Name!.StartsWith('<'))
+                {
+                    WriteXmlNodeAsComment(field.XmlComment);
+                    WriteField(field);
+                }
+            }
+
             CloseClass(classInfo);
+
             CloseNamespace(classInfo);
         }
 
         protected abstract void WriteComment(string str);
-        protected abstract void WriteMultilineComment(string[] str);
+        protected abstract void WriteMultilineComment(IEnumerable<string> str);
+        protected abstract void WriteXmlNodeAsComment(XmlNode? comment);
         protected abstract void WriteFileHeader(MetadataClassInfo classInfo);
-        protected abstract void WriteUsings(MetadataPropertyInfo classInfo);
+        protected abstract void WriteUsing(MetadataPropertyInfo classInfo);
         protected abstract void OpenNamespace(MetadataClassInfo classInfo);
         protected abstract void OpenClass(MetadataClassInfo classInfo);
-        protected abstract void WriteProperties(MetadataClassInfo classInfo);
+        protected abstract void WriteProperty(MetadataPropertyInfo classInfo);
+        protected abstract void WriteField(MetadataFieldInfo classInfo);
         protected abstract void CloseClass(MetadataClassInfo classInfo);
         protected abstract void CloseNamespace(MetadataClassInfo classInfo);
         protected abstract string FormatType(string type);
@@ -205,7 +227,7 @@ namespace Z3
         }
 
         /// <summary>
-        /// Join all the strings in the given list and add the <see cref="filler"/> character in between the string.
+        /// Join all the strings in the given list and add the <paramref name="filler"/> character in between the string.
         /// </summary>
         /// <remarks>
         /// If the filler character is '\0', no filler is used. 

@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Xml;
 
 namespace Z3
 {
@@ -34,16 +36,39 @@ namespace Z3
         {
         }
 
+        protected override void WriteComment(string str)
+        {
+            Output.WriteLine($"// {str}");
+        }
+
+        protected override void WriteMultilineComment(IEnumerable<string> str)
+        {
+            Output.WriteLine("/*");
+            foreach (var s in str)
+            {
+                Output.WriteLine($" * {s}");
+            }
+            Output.WriteLine(" */");
+        }
+
+        protected override void WriteXmlNodeAsComment(XmlNode? comment)
+        {
+            if (null != comment)
+            {
+                WriteComment(comment.SelectSingleNode("summary")!.InnerText.XmlCleanup().First());
+            }
+        }
+
         protected override void WriteFileHeader(MetadataClassInfo classInfo)
         {
             // TypeScript does not have a file header.
         }
 
-        protected override void WriteUsings(MetadataPropertyInfo property)
+        protected override void WriteUsing(MetadataPropertyInfo propertyInfo)
         {
-            if (!property.DontSerialize())
+            if (!propertyInfo.DontSerialize)
             {
-                string type = property.Type!;
+                string type = propertyInfo.Type!;
                 if (!IsStandardType(type))
                 {
                     var formattedType = FormatType(type).Replace("[]", "");
@@ -62,14 +87,19 @@ namespace Z3
             Output.WriteLine($"export class {ToCamelCase(classInfo.Name!)} {{");
         }
 
-        protected override void WriteProperties(MetadataClassInfo classInfo)
+        protected override void WriteProperty(MetadataPropertyInfo propertyInfo)
         {
-            foreach (var property in classInfo.Properties.Values)
+            if (!propertyInfo.DontSerialize)
             {
-                if (!property.DontSerialize())
-                {
-                    Output.WriteLine($"{INDENT}public {ToPascalCase(property.Name!)}: {FormatType(property.Type!)};");
-                }
+                Output.WriteLine($"{INDENT}public {ToPascalCase(propertyInfo.Name!)}: {FormatType(propertyInfo.Type!)};");
+            }
+        }
+
+        protected override void WriteField(MetadataFieldInfo fieldInfo)
+        {
+            if (!fieldInfo.DontSerialize)
+            {
+                Output.WriteLine($"{INDENT}public {ToPascalCase(fieldInfo.Name!)}: {FormatType(fieldInfo.Type!)};");
             }
         }
 
@@ -109,21 +139,6 @@ namespace Z3
             }
 
             return type;
-        }
-
-        protected override void WriteComment(string str)
-        {
-            Output.WriteLine($"// {str}");
-        }
-
-        protected override void WriteMultilineComment(string[] str)
-        {
-            Output.WriteLine("/*");
-            foreach (var s in str)
-            {
-                Output.WriteLine($" * {s}");
-            }
-            Output.WriteLine(" */");
         }
     }
 }

@@ -7,14 +7,14 @@ namespace Z3
     internal class MetadataPropertyInfo : MetadataInfo
     {
         private PropertyDefinition propertyDef;
-        private MetadataReader reader;
         private List<string> attributes = new();
 
-        public MetadataPropertyInfo(PropertyDefinition propertyDefinition, MetadataReader metadataReader)
+        public MetadataPropertyInfo(PropertyDefinition propertyDefinition, MetadataClassInfo classInfo, MetadataReader reader, XmlDocumentationFile? xmlDoc) : base(reader, xmlDoc)
         {
             propertyDef = propertyDefinition;
-            reader = metadataReader;
-            Name = reader.GetString(propertyDef.Name);
+            Name = Reader!.GetString(propertyDef.Name);
+
+            XmlMemberName = $"P:{classInfo.FullName}.{Name}";
         }
 
         public override void AllClassesLoaded(MetadataInfo? metadataInfo, int depthToLoad)
@@ -37,16 +37,16 @@ namespace Z3
                         var propAttributes = propertyDef.GetCustomAttributes();
                         foreach (var attributeHandle in propAttributes)
                         {
-                            var attribute = reader.GetCustomAttribute(attributeHandle);
+                            var attribute = Reader!.GetCustomAttribute(attributeHandle);
                             switch (attribute.Constructor.Kind)
                             {
                                 case HandleKind.MemberReference:
-                                    var ctor = reader.GetMemberReference((MemberReferenceHandle)attribute.Constructor);
+                                    var ctor = Reader.GetMemberReference((MemberReferenceHandle)attribute.Constructor);
                                     switch (ctor.Parent.Kind)
                                     {
                                         case HandleKind.TypeReference:
-                                            var a = reader.GetTypeReference((TypeReferenceHandle)ctor.Parent);
-                                            attributes.Add(reader.GetString(a.Name));
+                                            var a = Reader.GetTypeReference((TypeReferenceHandle)ctor.Parent);
+                                            attributes.Add(Reader.GetString(a.Name));
                                             break;
                                     }
                                     break;
@@ -66,6 +66,8 @@ namespace Z3
 
         public bool IsStandardType { get; private set; }
 
-        public IReadOnlyList<string> Attributes { get { return attributes.AsReadOnly(); } }
+        public IReadOnlyList<string> Attributes => attributes.AsReadOnly();
+
+        public bool DontSerialize => attributes.Contains("JsonIgnoreAttribute");
     }
 }

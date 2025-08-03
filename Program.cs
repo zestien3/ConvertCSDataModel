@@ -7,9 +7,12 @@ using CommandLine;
 
 namespace Z3
 {
+    /// <summary>
+    /// The main class for this application, containing the entry point.
+    /// </summary>
     public static class Program
     {
-        public enum Language
+        internal enum Language
         {
             TypeScript
         }
@@ -23,7 +26,7 @@ namespace Z3
             public string? OutputFolder { get; set; }
         }
 
-        [Verb("demo", false, HelpText="Converts some included test classes as a demonstration")]
+        [Verb("demo", false, HelpText = "Converts some included test classes as a demonstration")]
         internal class DemoOptions : Options
         {
             [Option('a', "auto", Required = false, HelpText = "If defined, converts all classes with a UseInFrontend attribute")]
@@ -71,6 +74,10 @@ namespace Z3
 
         private static Options? cmdLine;
 
+        /// <summary>
+        /// The main entry point of the program.
+        /// </summary>
+        /// <param name="args">The command line parameters passed to the program.</param>
         [STAThread]
         public static void Main(string[] args)
         {

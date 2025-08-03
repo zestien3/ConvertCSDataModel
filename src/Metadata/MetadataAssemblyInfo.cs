@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
-using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 
@@ -14,7 +13,6 @@ namespace Z3
 
         private FileStream fileStream;
         private PEReader portableExecutableReader;
-        private MetadataReader reader;
         private Dictionary<string, MetadataClassInfo> classesByName = new();
         private Dictionary<TypeDefinitionHandle, MetadataClassInfo> classesByHandle = new();
 
@@ -36,15 +34,17 @@ namespace Z3
             return allLoadedAssemblies[assemblyName]!;
         }
 
-        private MetadataAssemblyInfo(string assemblyName, int depthToLoad)
+        private MetadataAssemblyInfo(string assemblyName, int depthToLoad) : base(null, null)
         {
+            XmlDoc = new XmlDocumentationFile( Path.ChangeExtension(assemblyName, ".xml"));
+
             Name = Path.GetFileNameWithoutExtension(assemblyName);
 
             fileStream = new FileStream(assemblyName!, FileMode.Open, FileAccess.Read, FileShare.Read);
             portableExecutableReader = new PEReader(fileStream); //.BaseStream);
-            reader = portableExecutableReader.GetMetadataReader();
+            Reader = portableExecutableReader.GetMetadataReader();
 
-            foreach (var typeDefHandle in reader.TypeDefinitions)
+            foreach (var typeDefHandle in Reader.TypeDefinitions)
             {
                 AddTypeToClass(typeDefHandle);
             }
@@ -54,10 +54,10 @@ namespace Z3
 
         private void AddTypeToClass(TypeDefinitionHandle typeDefHandle)
         {
-            var typeDef = reader.GetTypeDefinition(typeDefHandle);
+            var typeDef = Reader!.GetTypeDefinition(typeDefHandle);
 
-            // If it's name starts with <>, it's probably an anonymous type
-            if (reader.GetString(typeDef.Name).StartsWith("<>"))
+            // If it's name starts with <>, it's probably an anonymous type or backing field
+            if (Reader.GetString(typeDef.Name).StartsWith("<>"))
                 return;
 
             // If it's BaseType is null, it is probably not something we are interested in
@@ -70,7 +70,7 @@ namespace Z3
                 AddTypeToClass(subTypeDefinition);
             }
 
-            var typeInfo = new MetadataClassInfo(typeDef, reader);
+            var typeInfo = new MetadataClassInfo(typeDef, Reader, XmlDoc);
 
             classesByName[typeInfo.FullName] = typeInfo;
             classesByHandle[typeDefHandle] = typeInfo;
@@ -94,9 +94,9 @@ namespace Z3
 
         public override void AllClassesLoaded(MetadataInfo? metadataInfo, int depthToLoad)
         {
-            if (depthToLoad > loadedDepth)
+            if (depthToLoad > LoadedDepth)
             {
-                loadedDepth = depthToLoad;
+                LoadedDepth = depthToLoad;
                 // Now all classes are loaded, we give all classes
                 // the chance to get a link to the classes they reference.
                 foreach (var classInfo in classesByHandle.Values)

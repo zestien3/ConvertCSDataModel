@@ -8,24 +8,24 @@ namespace Z3
     internal class MetadataClassInfo : MetadataInfo
     {
         private TypeDefinition typeDef;
-        private MetadataReader reader;
         private Dictionary<string, MetadataPropertyInfo> properties = new();
         private Dictionary<string, MetadataFieldInfo> fields = new();
         private List<string> attributes = new();
 
-        public MetadataClassInfo(TypeDefinition typeDefinition, MetadataReader metadataReader)
+        public MetadataClassInfo(TypeDefinition typeDefinition, MetadataReader reader, XmlDocumentationFile? xmlDoc) : base(reader, xmlDoc)
         {
             typeDef = typeDefinition;
-            reader = metadataReader;
             Name = reader.GetString(typeDef.Name);
             Namespace = reader.GetString(typeDef.Namespace);
+
+            XmlMemberName = $"T:{FullName}";
 
             // We are going to look for Custom Attributes.
             // For now we are only interested in UseInFrontendAttribute.
             // This code will get those for us. There are a number of 
             // custom attributes we will skip, but that is OK for now.
-            var propAttributes = typeDef.GetCustomAttributes();
-            foreach (var attributeHandle in propAttributes)
+            var classAttributes = typeDef.GetCustomAttributes();
+            foreach (var attributeHandle in classAttributes)
             {
                 var attribute = reader.GetCustomAttribute(attributeHandle);
                 switch (attribute.Constructor.Kind)
@@ -63,31 +63,31 @@ namespace Z3
 
         public override void AllClassesLoaded(MetadataInfo? metadataInfo, int depthToLoad)
         {
-            if (depthToLoad > loadedDepth)
+            if (depthToLoad > LoadedDepth)
             {
                 if (metadataInfo is MetadataAssemblyInfo assemblyInfo)
                 {
                     switch (typeDef.BaseType.Kind)
                     {
                         case HandleKind.TypeDefinition:
-                            {
-                                var baseType = reader.GetTypeDefinition((TypeDefinitionHandle)typeDef.BaseType);
-                                BaseTypeFullName = reader.GetString(baseType.Namespace) + "." + reader.GetString(baseType.Name);
-                                BaseType = assemblyInfo.ClassesByName[BaseTypeFullName];
-                                break;
-                            }
+                        {
+                            var baseType = Reader!.GetTypeDefinition((TypeDefinitionHandle)typeDef.BaseType);
+                            BaseTypeFullName = Reader.GetString(baseType.Namespace) + "." + Reader.GetString(baseType.Name);
+                            BaseType = assemblyInfo.ClassesByName[BaseTypeFullName];
+                            break;
+                        }
                         case HandleKind.TypeReference:
-                            {
-                                var baseType = reader.GetTypeReference((TypeReferenceHandle)typeDef.BaseType);
-                                BaseTypeFullName = reader.GetString(baseType.Namespace) + "." + reader.GetString(baseType.Name);
-                                break;
-                            }
+                        {
+                            var baseType = Reader!.GetTypeReference((TypeReferenceHandle)typeDef.BaseType);
+                            BaseTypeFullName = Reader.GetString(baseType.Namespace) + "." + Reader.GetString(baseType.Name);
+                            break;
+                        }
                         case HandleKind.TypeSpecification:
-                            {
-                                // I guess this is very likely a anonymouse class.
-                                BaseTypeFullName = "Anonymouse class";
-                                break;
-                            }
+                        {
+                            // I guess this is very likely a anonymous class.
+                            BaseTypeFullName = "Anonymous class";
+                            break;
+                        }
                         default:
                             BaseTypeFullName = typeDef.BaseType.Kind.ToString();
                             break;
@@ -98,22 +98,22 @@ namespace Z3
                     throw new ArgumentException($"Parameter {nameof(metadataInfo)} must be of type {nameof(MetadataAssemblyInfo)}");
                 }
 
-                if (depthToLoad >= loadedDepth + 1)
+                if (depthToLoad >= LoadedDepth + 1)
                 {
                     foreach (var propertyHandle in typeDef.GetProperties())
                     {
-                        var propertyInfo = new MetadataPropertyInfo(reader.GetPropertyDefinition(propertyHandle), reader);
+                        var propertyInfo = new MetadataPropertyInfo(Reader!.GetPropertyDefinition(propertyHandle), this, Reader, XmlDoc);
                         properties[propertyInfo.Name!] = propertyInfo;
                     }
 
                     foreach (var fieldHandle in typeDef.GetFields())
                     {
-                        var fieldInfo = new MetadataFieldInfo(reader.GetFieldDefinition(fieldHandle), reader);
+                        var fieldInfo = new MetadataFieldInfo(Reader!.GetFieldDefinition(fieldHandle), this, Reader, XmlDoc);
                         fields[fieldInfo.Name!] = fieldInfo;
                     }
                 }
 
-                if (depthToLoad >= loadedDepth + 2)
+                if (depthToLoad >= LoadedDepth + 2)
                 {
                     foreach (var propInfo in Properties.Values)
                     {
@@ -126,7 +126,7 @@ namespace Z3
                     }
                 }
 
-                loadedDepth = depthToLoad;
+                LoadedDepth = depthToLoad;
             }
         }
 
