@@ -23,18 +23,18 @@ namespace Z3
             {
                 if (metadataInfo is MetadataClassInfo classInfo)
                 {
-                    var signature = fieldDef.DecodeSignature<string, MetadataInfo>(MetadataSignatureTypeProvider.Instance, this);
-                    Type = signature;
-
-                    foreach (var attributeHandle in fieldDef.GetCustomAttributes())
+                    try
                     {
-                        var attribute = reader.GetCustomAttribute(attributeHandle);
-                        try
+                        var signature = fieldDef.DecodeSignature<string, MetadataInfo>(MetadataSignatureTypeProvider.Instance, this);
+                        Type = signature;
+
+                        foreach (var attributeHandle in fieldDef.GetCustomAttributes())
                         {
+                            var attribute = reader.GetCustomAttribute(attributeHandle);
                             var customAttribute = attribute.DecodeValue(MetadataCustomAttributeTypeProvider.Instance);
                         }
-                        catch (ArgumentOutOfRangeException) { }
                     }
+                    catch (ArgumentOutOfRangeException) { }
                 }
                 else
                 {
