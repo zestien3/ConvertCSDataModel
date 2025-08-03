@@ -15,6 +15,8 @@ namespace Z3
 
         protected TextWriter Output { get; }
 
+        protected List<string> Usings { get; }
+
         /// <summary>
         /// The constructor of the abstract base class <see cref="BaseFormatter"/>.
         /// </summary>
@@ -22,6 +24,7 @@ namespace Z3
         protected BaseFormatter(TextWriter output)
         {
             Output = output;
+            Usings = new();
         }
 
         /// <summary>
@@ -37,7 +40,22 @@ namespace Z3
                 $"The information in this file is collected from the .NET class {classInfo.FullName}"
             ]);
             WriteFileHeader(classInfo);
-            WriteUsings(classInfo);
+
+            foreach (var property in classInfo.Properties.Values)
+            {
+                var type = FormatType(property.Type!).Replace("[]", "");
+                if (!Usings.Contains(type))
+                {
+                    Usings.Add(type);
+                    WriteUsings(property);
+                }
+            }
+
+            if (Usings.Count > 0)
+            {
+                Output.WriteLine();
+            }
+
             OpenNamespace(classInfo);
             OpenClass(classInfo);
             WriteProperties(classInfo);
@@ -48,7 +66,7 @@ namespace Z3
         protected abstract void WriteComment(string str);
         protected abstract void WriteMultilineComment(string[] str);
         protected abstract void WriteFileHeader(MetadataClassInfo classInfo);
-        protected abstract void WriteUsings(MetadataClassInfo classInfo);
+        protected abstract void WriteUsings(MetadataPropertyInfo classInfo);
         protected abstract void OpenNamespace(MetadataClassInfo classInfo);
         protected abstract void OpenClass(MetadataClassInfo classInfo);
         protected abstract void WriteProperties(MetadataClassInfo classInfo);

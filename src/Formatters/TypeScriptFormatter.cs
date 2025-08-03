@@ -39,26 +39,16 @@ namespace Z3
             // TypeScript does not have a file header.
         }
 
-        protected override void WriteUsings(MetadataClassInfo classInfo)
+        protected override void WriteUsings(MetadataPropertyInfo property)
         {
-            var usingsFound = false;
-            foreach (var property in classInfo.Properties.Values)
+            if (!property.DontSerialize())
             {
-                if (!property.DontSerialize())
+                string type = property.Type!;
+                if (!IsStandardType(type))
                 {
-                    string type = property.Type!;
-                    if (!IsStandardType(type))
-                    {
-                        usingsFound = true;
-                        var formattedType = FormatType(type).Replace("[]", "");
-                        Output.WriteLine($"import {{ {formattedType} }} from \"./{ToKebabCase(formattedType)}.model.ts\";");
-                    }
+                    var formattedType = FormatType(type).Replace("[]", "");
+                    Output.WriteLine($"import {{ {formattedType} }} from \"./{ToKebabCase(formattedType)}.model.ts\";");
                 }
-            }
-
-            if (usingsFound)
-            {
-                Output.WriteLine();
             }
         }
 
