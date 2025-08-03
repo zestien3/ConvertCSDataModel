@@ -13,16 +13,25 @@ namespace Z3
                                                                        "string", "<TYPEDREFERENCE>", "<INTPTR>", "<UINTPTR>",
                                                                        "<OBJECT>", "Date" };
 
-        public TextWriter Output { get; }
-
+        /// <summary>
+        /// Return the file name to store the TypeScript representation of the given MetadataClassInfo.
+        /// </summary>
+        /// <remarks>
+        /// Used by the program to create the output filename.
+        /// </remarks>
+        /// <param name="classInfo">The MetadataClassInfo instance for which the file name name is required.</param>
+        /// <returns>The file name to store the TypeScript representation of the given MetadataClassInfo.</returns>
         public static string GetFileNameFromClass(MetadataClassInfo classInfo)
         {
             return $"{BaseFormatter.ToKebabCase(classInfo.Name!)}.model.ts";
         }
 
-        public TypeScriptFormatter(TextWriter output)
+        /// <summary>
+        /// Create an instance of the <see cref="TypeScriptFormatter"/> class.
+        /// </summary>
+        /// <param name="output">The output to which the type script code must be written.</param>
+        public TypeScriptFormatter(TextWriter output) : base(output)
         {
-            Output = output;
         }
 
         protected override void WriteFileHeader(MetadataClassInfo classInfo)
@@ -110,6 +119,21 @@ namespace Z3
             }
 
             return type;
+        }
+
+        protected override void WriteComment(string str)
+        {
+            Output.WriteLine($"// {str}");
+        }
+
+        protected override void WriteMultilineComment(string[] str)
+        {
+            Output.WriteLine("/*");
+            foreach (var s in str)
+            {
+                Output.WriteLine($" * {s}");
+            }
+            Output.WriteLine(" */");
         }
     }
 }
