@@ -9,7 +9,6 @@
 
   <ItemGroup>
     <PackageReference Include="CommandLineParser" Version="2.9.1" />
-    <PackageReference Include="System.Reflection.Metadata" Version="9.0.7" />
   </ItemGroup>
 
 </Project>
