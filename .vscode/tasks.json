@@ -26,9 +26,6 @@
         "Release",
         "-r",
         "win-x64",
-        "-p:PublishSingleFile=true",
-        "--self-contained",
-        "true",
         "${workspaceFolder}\\ConvertCSDataModel.csproj"
       ],
       "group": {
@@ -45,8 +42,12 @@
       "command": "copy",
       "type": "shell",
       "args": [
-        "${workspaceFolder}\\bin\\Release\\net8.0\\win-x64\\publish\\ConvertCSDataModel.exe",
-        "C:\\Users\\Peter\\.dotnet\\tools\\ConvertCSDataModel.exe"
+        "-Path",
+        "${workspaceFolder}\\bin\\Release\\net8.0\\win-x64\\publish\\",
+        "-Include",
+        "*.exe,*.dll,*.xml",
+        "-Destination",
+        "C:\\Users\\Peter\\.dotnet\\tools\\"
       ],
       "group": {
         "kind": "build",
