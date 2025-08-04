@@ -10,7 +10,7 @@
         "demo",
       ],
       "cwd": "${workspaceFolder}",
-      "stopAtEntry": true,
+      "stopAtEntry": false,
       "console": "internalConsole"
     },
     {
