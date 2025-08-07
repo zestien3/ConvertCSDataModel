@@ -18,7 +18,10 @@ namespace Zestien3
     /// <summary>
     /// Attribute which tells the application to process the class it is set on.
     /// </summary>
-    internal class UseInFrontendAttribute : Attribute { }
+    internal class UseInFrontendAttribute : Attribute
+    {
+        public string? SubFolder { get; set; }
+    }
 
     /// <summary>
     /// Main class for the demo of this application.
@@ -26,7 +29,7 @@ namespace Zestien3
     /// <remarks>
     /// It represents a company with various departments.
     /// </remarks>
-    [UseInFrontend()]
+    [UseInFrontend(SubFolder = "Demo")]
     public abstract class Company
     {
         /// <summary>
@@ -51,7 +54,7 @@ namespace Zestien3
     /// <remarks>
     /// It represents a department with its manager and employees.
     /// </remarks>
-    [UseInFrontend()]
+    [UseInFrontend(SubFolder = "Demo")]
     public class Department
     {
         /// <summary>
@@ -76,7 +79,7 @@ namespace Zestien3
     /// <remarks>
     /// It represents an employee.
     /// </remarks>
-    [UseInFrontend()]
+    [UseInFrontend(SubFolder = "Demo")]
     public class Employee
     {
         /// <summary>

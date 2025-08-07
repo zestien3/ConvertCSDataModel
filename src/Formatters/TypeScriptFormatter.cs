@@ -1,8 +1,6 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Xml;
 
 namespace Z3
 {
@@ -14,6 +12,12 @@ namespace Z3
                                                                        "string", "<TYPEDREFERENCE>", "<INTPTR>", "<UINTPTR>",
                                                                        "<OBJECT>", "Date" };
 
+        private static readonly List<string> tsStandardTypeValues = new() { "null", "false", "0", "0", "0",
+                                                                            "0", "0", "0", "0",
+                                                                            "0", "0", "0", "0",
+                                                                            "\"\"", "<TYPEDREFERENCE>", "<INTPTR>", "<UINTPTR>",
+                                                                            "<OBJECT>", "new Date()" };
+
         /// <summary>
         /// Return the file name to store the TypeScript representation of the given MetadataClassInfo.
         /// </summary>
@@ -24,7 +28,13 @@ namespace Z3
         /// <returns>The file name to store the TypeScript representation of the given MetadataClassInfo.</returns>
         public static string GetFileNameFromClass(MetadataClassInfo classInfo)
         {
-            return $"{BaseFormatter.ToKebabCase(classInfo.Name!)}.model.ts";
+            if (classInfo.Attributes.ContainsKey(nameof(Zestien3.UseInFrontendAttribute)) &&
+                classInfo.Attributes[nameof(Zestien3.UseInFrontendAttribute)].ContainsKey(nameof(Zestien3.UseInFrontendAttribute.SubFolder)))
+            {
+                var subFolder = classInfo.Attributes[nameof(Zestien3.UseInFrontendAttribute)][nameof(Zestien3.UseInFrontendAttribute.SubFolder)];
+                return Path.Combine(subFolder, $"{BaseFormatter.ToKebabCase(classInfo.Name!)}.ts");
+            }
+            return $"{BaseFormatter.ToKebabCase(classInfo.Name!)}.ts";
         }
 
         /// <summary>
@@ -111,7 +121,22 @@ namespace Z3
             if (!propertyInfo.DontSerialize)
             {
                 WriteIndent(1);
-                Output.WriteLine($"public {ToPascalCase(propertyInfo.Name!)}: {FormatType(propertyInfo.Type!)};");
+                Output.Write($"public {ToPascalCase(propertyInfo.Name!)}: {FormatType(propertyInfo.Type!)} = ");
+                if (propertyInfo.Type!.EndsWith("]"))
+                {
+                    Output.WriteLine("[];");
+                }
+                else
+                {
+                    if (propertyInfo.IsStandardType)
+                    {
+                        Output.WriteLine($"{tsStandardTypeValues[BaseFormatter.csStandardTypes.IndexOf(propertyInfo.Type!)]};");
+                    }
+                    else
+                    {
+                        Output.WriteLine($"new {FormatType(propertyInfo.Type!)}();");
+                    }
+                }
             }
         }
 
@@ -120,7 +145,21 @@ namespace Z3
             if (!fieldInfo.DontSerialize)
             {
                 WriteIndent(1);
-                Output.WriteLine($"public {ToPascalCase(fieldInfo.Name!)}: {FormatType(fieldInfo.Type!)};");
+                Output.Write($"public {ToPascalCase(fieldInfo.Name!)}: {FormatType(fieldInfo.Type!)} ");
+                if (fieldInfo.Type!.EndsWith("[]"))
+                {
+                    Output.WriteLine("[];");
+                }
+                {
+                    if (fieldInfo.IsStandardType)
+                    {
+                        Output.WriteLine($"{tsStandardTypeValues[BaseFormatter.csStandardTypes.IndexOf(fieldInfo.Type!)]};");
+                    }
+                    else
+                    {
+                        Output.WriteLine($"new {FormatType(fieldInfo.Type!)}();");
+                    }
+                }
             }
         }
 
@@ -153,7 +192,7 @@ namespace Z3
                 type += "[]";
             }
 
-            // Remove the namspace
+            // Remove the namespace
             if (type.Contains('.'))
             {
                 type = type.Substring(type.LastIndexOf('.') + 1);

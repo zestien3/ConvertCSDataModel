@@ -7,6 +7,7 @@ namespace Z3
     internal class MetadataPropertyInfo : MetadataInfo
     {
         private PropertyDefinition propertyDef;
+
         private List<string> attributes = new();
 
         public MetadataPropertyInfo(PropertyDefinition propertyDefinition, MetadataClassInfo classInfo, MetadataReader reader, XmlDocumentationFile? xmlDoc) : base(reader, xmlDoc)
@@ -29,6 +30,8 @@ namespace Z3
                         // TODO: For now we use this 'hack'
                         //       We should create a class that converts C# types to TS types.
                         Type = signature.ReturnType;
+
+                        IsStandardType = BaseFormatter.csStandardTypes.Contains(Type!);
 
                         // We are going to look for Custom Attributes.
                         // For now we are only interested in JsonIgnoreAttribute.

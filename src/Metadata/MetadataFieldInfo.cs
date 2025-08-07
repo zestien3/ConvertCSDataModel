@@ -26,8 +26,16 @@ namespace Z3
                     try
                     {
                         var signature = fieldDef.DecodeSignature<string, MetadataInfo>(MetadataSignatureTypeProvider.Instance, this);
+                        // TODO: For now we use this 'hack'
+                        //       We should create a class that converts C# types to TS types.
                         Type = signature;
 
+                        IsStandardType = BaseFormatter.csStandardTypes.Contains(Type!);
+
+                        // We are going to look for Custom Attributes.
+                        // For now we are only interested in JsonIgnoreAttribute.
+                        // This code will get those for us. There are a number of 
+                        // custom attributes we will skip, but that is OK for now.
                         foreach (var attributeHandle in fieldDef.GetCustomAttributes())
                         {
                             var attribute = Reader!.GetCustomAttribute(attributeHandle);
@@ -44,6 +52,8 @@ namespace Z3
         }
 
         public string? Type { get; private set; }
+
+        public bool IsStandardType { get; private set; }
 
         public IReadOnlyList<string> Attributes => attributes.AsReadOnly();
 

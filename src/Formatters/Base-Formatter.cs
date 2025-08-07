@@ -8,7 +8,7 @@ namespace Z3
 {
     internal abstract class BaseFormatter
     {
-        protected static readonly List<string> csStandardTypes = new() { "void", "bool", "sbyte", "byte", "char",
+        public static readonly List<string> csStandardTypes = new() { "void", "bool", "sbyte", "byte", "char",
                                                                          "int16", "uint16", "int32", "uint32",
                                                                          "int64", "uint64", "single", "double",
                                                                          "string", "typedReference", "IntPtr", "UIntPtr",

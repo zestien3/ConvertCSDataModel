@@ -10,7 +10,7 @@ namespace Z3
         private TypeDefinition typeDef;
         private Dictionary<string, MetadataPropertyInfo> properties = new();
         private Dictionary<string, MetadataFieldInfo> fields = new();
-        private List<string> attributes = new();
+        private Dictionary<string, Dictionary<string, string>> attributes = new();
 
         public MetadataClassInfo(TypeDefinition typeDefinition, MetadataReader reader, XmlDocumentationFile? xmlDoc) : base(reader, xmlDoc)
         {
@@ -38,7 +38,11 @@ namespace Z3
                             case HandleKind.TypeReference:
                                 var a = reader.GetTypeReference((TypeReferenceHandle)ctor.Parent);
                                 var attr = reader.GetString(a.Name);
-                                attributes.Add(attr);
+
+                                // This would get the parameters, but for now we are not interested in them. 
+                                // var parameters = attribute.DecodeValue(MetadataCustomAttributeTypeProvider.Instance);
+
+                                attributes[attr] = [];
                                 break;
                             default:
                                 Console.Error.WriteLine($"{nameof(MetadataClassInfo)}: Attribute.Parent kind is of type {ctor.Parent.Kind}");
@@ -48,10 +52,29 @@ namespace Z3
                     }
                     case HandleKind.MethodDefinition:
                     {
+                        // The attribute is defined using it's constructor. 
                         var ctor = reader.GetMethodDefinition((MethodDefinitionHandle)attribute.Constructor);
+
+                        // The return value of the constructor is void, so we get the declaring type,
+                        // which is the attribute class. We remove the namespace.
                         var attr = ctor.GetDeclaringType().ToTypeString(reader);
                         attr = attr.Substring(attr.LastIndexOf('.') + 1);
-                        attributes.Add(attr);
+
+                        // TODO: We can move this code to the outer scope, as the attribute is defined
+                        //       in that scope.
+                        // We get all the parameters passed to the method, which are FixedArguments
+                        // or NamedArguments. For now we are only interested in the named arguments.
+                        var parameters = attribute.DecodeValue(MetadataCustomAttributeTypeProvider.Instance);
+                        attributes[attr] = [];
+
+                        // We add all named arguments of type string and their values to the dictionary.
+                        foreach (var na in parameters.NamedArguments)
+                        {
+                            if (na.Type == "string")
+                            {
+                                attributes[attr][na.Name!] = (string) na.Value!;
+                            }   
+                        }
                         break;
                     }
                     default:
@@ -142,6 +165,6 @@ namespace Z3
 
         public string FullName { get { return Namespace + "." + Name; } }
 
-        public IReadOnlyList<string> Attributes { get { return attributes.AsReadOnly(); } }
+        public IReadOnlyDictionary<string, Dictionary<string, string>> Attributes { get { return attributes.AsReadOnly(); } }
     }
 }

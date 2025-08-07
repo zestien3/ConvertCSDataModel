@@ -56,7 +56,7 @@ namespace Z3
 
             if (null != cmdLine)
             {
-                List<string> classNames = new(cmdLine.ClassNames!);
+                List<string> classNames = [.. cmdLine.ClassNames!];
 
                 Logger.LogMessage($"Opening assembly {cmdLine.AssemblyName!}");
                 assemblyInfo = MetadataAssemblyInfo.Factory(cmdLine.AssemblyName!);
@@ -65,7 +65,7 @@ namespace Z3
                 {
                     foreach (var classInfo in assemblyInfo.ClassesByName.Values)
                     {
-                        if (classInfo.Attributes.Contains("UseInFrontendAttribute"))
+                        if (classInfo.Attributes.ContainsKey(nameof(Zestien3.UseInFrontendAttribute)))
                         {
                             if (!classNames.Contains(classInfo.FullName))
                             {
@@ -103,7 +103,7 @@ namespace Z3
         {
             if (string.IsNullOrEmpty(cmdLine!.OutputFolder))
             {
-                Console.Out.WriteLine();
+                Logger.LogMessage($"Output file would be {fileName}");
                 return Console.Out;
             }
 

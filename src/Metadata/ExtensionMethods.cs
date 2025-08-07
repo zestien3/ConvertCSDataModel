@@ -23,5 +23,11 @@ namespace Z3
         {
             return reader.GetTypeSpecification(handle).DecodeSignature(MetadataSignatureTypeProvider.Instance, genericContext);
         }
+
+        public static string? GetPropertyValue(this System.Reflection.Metadata.CustomAttributeValue<string> customAttributeValue, string propertyName)
+        {
+            var na = customAttributeValue.NamedArguments.FirstOrDefault(na => na.Name == propertyName);
+            return (string?)(na.Value);
+        }
     }
 }
