@@ -8,7 +8,6 @@ namespace Z3
 {
     internal class TypeScriptFormatter : BaseFormatter
     {
-        private static readonly string INDENT = "  ";
         private static readonly List<string> tsStandardTypes = new() { "void", "boolean", "number", "number", "number",
                                                                        "number", "number", "number", "number",
                                                                        "number", "number", "number", "number",
@@ -34,14 +33,15 @@ namespace Z3
         /// <param name="output">The output to which the type script code must be written.</param>
         public TypeScriptFormatter(TextWriter output) : base(output)
         {
+            IndentLength = 2;
         }
 
-        protected override void WriteComment(string str)
+        protected override void WriteComment(string str, int indentLevel)
         {
             Output.WriteLine($"// {str}");
         }
 
-        protected override void WriteMultilineComment(IEnumerable<string> str)
+        protected override void WriteMultilineComment(IEnumerable<string> str, int indentLevel)
         {
             Output.WriteLine("/*");
             foreach (var s in str)
@@ -51,11 +51,30 @@ namespace Z3
             Output.WriteLine(" */");
         }
 
-        protected override void WriteXmlNodeAsComment(XmlNode? comment)
+        protected override void WriteXmlDocumentation(XmlDocumentation? documentation, int indentLevel)
         {
-            if (null != comment)
+            if (null != documentation && documentation.HasContent)
             {
-                WriteComment(comment.SelectSingleNode("summary")!.InnerText.XmlCleanup().First());
+                WriteIndent(indentLevel);
+                Output.WriteLine("/**");
+
+                foreach (var str in documentation.Summary)
+                {
+                    WriteIndent(indentLevel);
+                    Output.WriteLine($" *  {str}");
+                }
+
+                if (documentation.Summary.Any() && documentation.Remarks.Any())
+                    Output.WriteLine(" *");
+
+                foreach (var str in documentation.Remarks)
+                {
+                    WriteIndent(indentLevel);
+                    Output.WriteLine($" *  {str}");
+                }
+
+                WriteIndent(indentLevel);
+                Output.WriteLine(" */");
             }
         }
 
@@ -91,7 +110,8 @@ namespace Z3
         {
             if (!propertyInfo.DontSerialize)
             {
-                Output.WriteLine($"{INDENT}public {ToPascalCase(propertyInfo.Name!)}: {FormatType(propertyInfo.Type!)};");
+                WriteIndent(1);
+                Output.WriteLine($"public {ToPascalCase(propertyInfo.Name!)}: {FormatType(propertyInfo.Type!)};");
             }
         }
 
@@ -99,7 +119,8 @@ namespace Z3
         {
             if (!fieldInfo.DontSerialize)
             {
-                Output.WriteLine($"{INDENT}public {ToPascalCase(fieldInfo.Name!)}: {FormatType(fieldInfo.Type!)};");
+                WriteIndent(1);
+                Output.WriteLine($"public {ToPascalCase(fieldInfo.Name!)}: {FormatType(fieldInfo.Type!)};");
             }
         }
 

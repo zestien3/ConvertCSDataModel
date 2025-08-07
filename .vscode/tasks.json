@@ -43,9 +43,9 @@
       "type": "shell",
       "args": [
         "-Path",
-        "${workspaceFolder}\\bin\\Release\\net8.0\\win-x64\\publish\\",
+        "${workspaceFolder}\\bin\\Release\\net8.0\\win-x64\\publish\\*.*",
         "-Include",
-        "*.exe,*.dll,*.xml",
+        "*.exe,*.dll,*.xml,*.json",
         "-Destination",
         "C:\\Users\\Peter\\.dotnet\\tools\\"
       ],

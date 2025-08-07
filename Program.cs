@@ -12,64 +12,6 @@ namespace Z3
     /// </summary>
     public static class Program
     {
-        internal enum Language
-        {
-            TypeScript
-        }
-
-        internal interface Options
-        {
-            public bool AutoFind { get; set; }
-            public string? AssemblyName { get; set; }
-            public IEnumerable<Language>? Languages { get; set; }
-            public IEnumerable<string>? ClassNames { get; set; }
-            public string? OutputFolder { get; set; }
-        }
-
-        [Verb("demo", false, HelpText = "Converts some included test classes as a demonstration")]
-        internal class DemoOptions : Options
-        {
-            [Option('a', "auto", Required = false, HelpText = "If defined, converts all classes with a UseInFrontend attribute")]
-            public bool AutoFind { get; set; }
-
-            [Option('f', "file", Required = false, HelpText = "The path to the Assembly which contains the class(es) to convert")]
-            public string? AssemblyName { get; set; }
-
-            [Option('l', "language", Required = false, HelpText = "The programming language(s) to convert to")]
-            public IEnumerable<Language>? Languages { get; set; }
-
-            [Option('c', "classes", Required = false, HelpText = "The name of the class(es) to convert (including the complete namespace)")]
-            public IEnumerable<string>? ClassNames { get; set; }
-
-            [Option('o', "out", Required = false, HelpText = "The folder to which the output files are written. If omitted, Console.Out is used")]
-            public string? OutputFolder { get; set; }
-
-            public DemoOptions()
-            {
-                AutoFind = true;
-                AssemblyName = Assembly.GetExecutingAssembly()!.Location;
-            }
-        }
-
-        [Verb("default", true)]
-        internal class DefaultOptions : Options
-        {
-            [Option('a', "auto", Required = false, HelpText = "If defined, converts all classes with a UseInFrontend attribute")]
-            public bool AutoFind { get; set; }
-
-            [Option('f', "file", Required = true, HelpText = "The path to the Assembly which contains the class(es) to convert")]
-            public string? AssemblyName { get; set; }
-
-            [Option('l', "language", Required = true, HelpText = "The programming language(s) to convert to")]
-            public IEnumerable<Language>? Languages { get; set; }
-
-            [Option('c', "classes", Required = false, HelpText = "The name of the class(es) to convert (including the complete namespace)")]
-            public IEnumerable<string>? ClassNames { get; set; }
-
-            [Option('o', "out", Required = false, HelpText = "The folder to which the output files are written. If omitted, Console.Out is used")]
-            public string? OutputFolder { get; set; }
-        }
-
         private static MetadataAssemblyInfo? assemblyInfo;
 
         private static Options? cmdLine;
@@ -95,6 +37,8 @@ namespace Z3
             cmdLine = parsed.MapResult(
                 (DemoOptions options) =>
                 {
+                    Logger.SetVerbosity(options.Verbosity);
+
                     using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("ConvertCSDataModel.Demo.cs")!;
                     var reader = new StreamReader(stream);
                     Console.Out.WriteLine(reader.ReadToEnd());
@@ -102,7 +46,11 @@ namespace Z3
                     options.Languages = [Language.TypeScript];
                     return (Options?)options;
                 },
-                (DefaultOptions options) => { return (Options?)options; },
+                (DefaultOptions options) =>
+                {
+                    Logger.SetVerbosity(options.Verbosity);
+                    return (Options?)options;
+                },
                 _ => { return null; }
             );
 
@@ -110,6 +58,7 @@ namespace Z3
             {
                 List<string> classNames = new(cmdLine.ClassNames!);
 
+                Logger.LogMessage($"Opening assembly {cmdLine.AssemblyName!}");
                 assemblyInfo = MetadataAssemblyInfo.Factory(cmdLine.AssemblyName!);
 
                 if (cmdLine.AutoFind)
@@ -128,6 +77,8 @@ namespace Z3
 
                 foreach (var className in classNames)
                 {
+                    Logger.LogMessage($"Processing class {className}");
+
                     var classInfo = assemblyInfo!.ClassesByName[className];
 
                     // For this class we do load more information.

@@ -7,21 +7,6 @@ namespace Z3
 {
     internal static class ExtensionMethods
     {
-        public static IEnumerable<string> XmlCleanup(this string str)
-        {
-            var result = new List<string>();
-            foreach (string s in str.Split('\r', '\n'))
-            {
-                var trimmedStr = s.Trim();
-                if (!string.IsNullOrEmpty(trimmedStr))
-                {
-                    result.Add(trimmedStr);
-                }
-            }
-
-            return result;
-        }
-
         public static string ToTypeString(this TypeDefinitionHandle handle, MetadataReader reader)
         {
             var typeDef = reader.GetTypeDefinition(handle);

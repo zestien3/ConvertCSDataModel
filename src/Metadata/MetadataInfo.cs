@@ -16,11 +16,11 @@ namespace Z3
         public abstract void AllClassesLoaded(MetadataInfo? metadataInfo, int depthToLoad);
 
         public string? Name { get; protected set; }
-        public XmlNode? XmlComment
+        public XmlDocumentation? XmlComment
         {
             get
             {
-                return XmlDoc?.GetXmlComments(XmlMemberName);
+                return new XmlDocumentation(XmlDoc?.GetXmlComments(XmlMemberName));
             }
         }
 
