@@ -39,13 +39,16 @@
     {
       "label": "publish",
       "dependsOn": "release-build",
-      "command": "copy",
-      "type": "shell",
+      "command": "pwsh.exe",
+      "type": "process",
       "args": [
+        "-Command",
+        "Copy-Item",
+        "-Verbose",
         "-Path",
         "${workspaceFolder}\\bin\\Release\\net8.0\\win-x64\\publish\\*.*",
         "-Include",
-        "*.exe,*.dll,*.xml,*.json",
+        "*.exe,*.dll,*.xml,*.runtimeconfig.json",
         "-Destination",
         "C:\\Users\\Peter\\.dotnet\\tools\\"
       ],
