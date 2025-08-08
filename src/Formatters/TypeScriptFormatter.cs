@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+using Zestien3;
 
 namespace Z3
 {
@@ -28,20 +30,21 @@ namespace Z3
         /// <returns>The file name to store the TypeScript representation of the given MetadataClassInfo.</returns>
         public static string GetFileNameFromClass(MetadataClassInfo classInfo)
         {
-            if (classInfo.Attributes.ContainsKey(nameof(Zestien3.UseInFrontendAttribute)) &&
-                classInfo.Attributes[nameof(Zestien3.UseInFrontendAttribute)].ContainsKey(nameof(Zestien3.UseInFrontendAttribute.SubFolder)))
+            if (classInfo.Attributes.ContainsKey(nameof(UseInFrontendAttribute)) &&
+                classInfo.Attributes[nameof(UseInFrontendAttribute)].NamedArguments.ContainsKey(nameof(UseInFrontendAttribute.SubFolder)))
             {
-                var subFolder = classInfo.Attributes[nameof(Zestien3.UseInFrontendAttribute)][nameof(Zestien3.UseInFrontendAttribute.SubFolder)];
-                return Path.Combine(subFolder, $"{BaseFormatter.ToKebabCase(classInfo.Name!)}.ts");
+                var subFolder = classInfo.Attributes[nameof(UseInFrontendAttribute)].NamedArguments[nameof(UseInFrontendAttribute.SubFolder)];
+                return Path.Combine((string)subFolder.Value!, $"{ToKebabCase(classInfo.Name!)}.ts");
             }
-            return $"{BaseFormatter.ToKebabCase(classInfo.Name!)}.ts";
+            return $"{ToKebabCase(classInfo.Name!)}.ts";
         }
 
         /// <summary>
         /// Create an instance of the <see cref="TypeScriptFormatter"/> class.
         /// </summary>
+        /// <param name="assemblyInfo">The assembly for which we create the output.</param>
         /// <param name="output">The output to which the type script code must be written.</param>
-        public TypeScriptFormatter(TextWriter output) : base(output)
+        public TypeScriptFormatter(MetadataAssemblyInfo assemblyInfo, TextWriter output) : base(assemblyInfo, output)
         {
             IndentLength = 2;
         }
@@ -100,8 +103,20 @@ namespace Z3
                 string type = propertyInfo.Type!;
                 if (!IsStandardType(type))
                 {
+                    string subFolder = string.Empty;
+                    if (AssemblyInfo.ClassesByName.TryGetValue(type, out MetadataClassInfo? importedClass))
+                    {
+                        if (importedClass.Attributes.TryGetValue(nameof(UseInFrontendAttribute), out MetadataAttributeInfo? attributeInfo))
+                        {
+                            if (attributeInfo.NamedArguments.ContainsKey("SubFolder"))
+                            {
+                                subFolder = (string)attributeInfo.NamedArguments["SubFolder"].Value! + '/';
+                            }
+                        }
+                    }
+
                     var formattedType = FormatType(type).Replace("[]", "");
-                    Output.WriteLine($"import {{ {formattedType} }} from \"./{ToKebabCase(formattedType)}.model.ts\";");
+                    Output.WriteLine($"import {{ {formattedType} }} from \"./{subFolder}{ToKebabCase(formattedType)}.ts\";");
                 }
             }
         }

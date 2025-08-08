@@ -16,6 +16,8 @@ namespace Z3
 
         protected TextWriter Output { get; }
 
+        protected MetadataAssemblyInfo AssemblyInfo { get; }
+
         protected List<string> Usings { get; }
 
         protected int IndentLength { get; set; }
@@ -23,10 +25,12 @@ namespace Z3
         /// <summary>
         /// The constructor of the abstract base class <see cref="BaseFormatter"/>.
         /// </summary>
+        /// <param name="assemblyInfo">The assembly for which we create the output.</param>
         /// <param name="output">The output to which the type script code must be written.</param>
-        protected BaseFormatter(TextWriter output)
+        protected BaseFormatter(MetadataAssemblyInfo assemblyInfo, TextWriter output)
         {
             Output = output;
+            AssemblyInfo = assemblyInfo;
             Usings = [];
             IndentLength = 4;
         }

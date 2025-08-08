@@ -8,7 +8,7 @@ namespace Z3
     {
         private PropertyDefinition propertyDef;
 
-        private List<string> attributes = new();
+        private Dictionary<string, MetadataAttributeInfo> attributes = [];
 
         public MetadataPropertyInfo(PropertyDefinition propertyDefinition, MetadataClassInfo classInfo, MetadataReader reader, XmlDocumentationFile? xmlDoc) : base(reader, xmlDoc)
         {
@@ -41,19 +41,9 @@ namespace Z3
                         foreach (var attributeHandle in propAttributes)
                         {
                             var attribute = Reader!.GetCustomAttribute(attributeHandle);
-                            switch (attribute.Constructor.Kind)
-                            {
-                                case HandleKind.MemberReference:
-                                    var ctor = Reader.GetMemberReference((MemberReferenceHandle)attribute.Constructor);
-                                    switch (ctor.Parent.Kind)
-                                    {
-                                        case HandleKind.TypeReference:
-                                            var a = Reader.GetTypeReference((TypeReferenceHandle)ctor.Parent);
-                                            attributes.Add(Reader.GetString(a.Name));
-                                            break;
-                                    }
-                                    break;
-                            }
+                            var customAttribute = new MetadataAttributeInfo(attribute, Reader);
+                            if (!string.IsNullOrEmpty(customAttribute.Name))
+                                attributes[customAttribute.Name!] = customAttribute;
                         }
                     }
                     catch (ArgumentNullException) { }
@@ -69,8 +59,8 @@ namespace Z3
 
         public bool IsStandardType { get; private set; }
 
-        public IReadOnlyList<string> Attributes => attributes.AsReadOnly();
+        public IReadOnlyDictionary<string, MetadataAttributeInfo> Attributes => attributes.AsReadOnly();
 
-        public bool DontSerialize => attributes.Contains("JsonIgnoreAttribute");
+        public bool DontSerialize => attributes.ContainsKey("JsonIgnoreAttribute");
     }
 }

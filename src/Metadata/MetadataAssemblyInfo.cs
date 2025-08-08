@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.IO;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
@@ -76,7 +75,7 @@ namespace Z3
             classesByHandle[typeDefHandle] = typeInfo;
         }
 
-        public ReadOnlyDictionary<string, MetadataClassInfo> ClassesByName
+        public IReadOnlyDictionary<string, MetadataClassInfo> ClassesByName
         {
             get
             {
@@ -84,7 +83,7 @@ namespace Z3
             }
         }
 
-        public ReadOnlyDictionary<TypeDefinitionHandle, MetadataClassInfo> ClassesByHandle
+        public IReadOnlyDictionary<TypeDefinitionHandle, MetadataClassInfo> ClassesByHandle
         {
             get
             {

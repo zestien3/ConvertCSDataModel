@@ -7,7 +7,7 @@ namespace Z3
     internal class MetadataFieldInfo : MetadataInfo
     {
         private FieldDefinition fieldDef;
-        private List<string> attributes = new();
+        private Dictionary<string, MetadataAttributeInfo> attributes = [];
 
         public MetadataFieldInfo(FieldDefinition fieldDefinition, MetadataClassInfo classInfo, MetadataReader reader, XmlDocumentationFile? xmlDoc) : base(reader, xmlDoc)
         {
@@ -39,7 +39,9 @@ namespace Z3
                         foreach (var attributeHandle in fieldDef.GetCustomAttributes())
                         {
                             var attribute = Reader!.GetCustomAttribute(attributeHandle);
-                            var customAttribute = attribute.DecodeValue(MetadataCustomAttributeTypeProvider.Instance);
+                            var customAttribute = new MetadataAttributeInfo(attribute, Reader);
+                            if (!string.IsNullOrEmpty(customAttribute.Name))
+                                attributes[customAttribute.Name!] = customAttribute;
                         }
                     }
                     catch (ArgumentOutOfRangeException) { }
@@ -55,8 +57,8 @@ namespace Z3
 
         public bool IsStandardType { get; private set; }
 
-        public IReadOnlyList<string> Attributes => attributes.AsReadOnly();
+        public IReadOnlyDictionary<string, MetadataAttributeInfo> Attributes => attributes.AsReadOnly();
 
-        public bool DontSerialize => attributes.Contains("JsonIgnoreAttribute");
+        public bool DontSerialize => attributes.ContainsKey("JsonIgnoreAttribute");
     }
 }

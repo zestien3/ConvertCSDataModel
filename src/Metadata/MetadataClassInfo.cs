@@ -8,9 +8,9 @@ namespace Z3
     internal class MetadataClassInfo : MetadataInfo
     {
         private TypeDefinition typeDef;
-        private Dictionary<string, MetadataPropertyInfo> properties = new();
-        private Dictionary<string, MetadataFieldInfo> fields = new();
-        private Dictionary<string, Dictionary<string, string>> attributes = new();
+        private Dictionary<string, MetadataPropertyInfo> properties = [];
+        private Dictionary<string, MetadataFieldInfo> fields = [];
+        private Dictionary<string, MetadataAttributeInfo> attributes = [];
 
         public MetadataClassInfo(TypeDefinition typeDefinition, MetadataReader reader, XmlDocumentationFile? xmlDoc) : base(reader, xmlDoc)
         {
@@ -27,60 +27,9 @@ namespace Z3
             var classAttributes = typeDef.GetCustomAttributes();
             foreach (var attributeHandle in classAttributes)
             {
-                var attribute = reader.GetCustomAttribute(attributeHandle);
-                switch (attribute.Constructor.Kind)
-                {
-                    case HandleKind.MemberReference:
-                    {
-                        var ctor = reader.GetMemberReference((MemberReferenceHandle)attribute.Constructor);
-                        switch (ctor.Parent.Kind)
-                        {
-                            case HandleKind.TypeReference:
-                                var a = reader.GetTypeReference((TypeReferenceHandle)ctor.Parent);
-                                var attr = reader.GetString(a.Name);
-
-                                // This would get the parameters, but for now we are not interested in them. 
-                                // var parameters = attribute.DecodeValue(MetadataCustomAttributeTypeProvider.Instance);
-
-                                attributes[attr] = [];
-                                break;
-                            default:
-                                Console.Error.WriteLine($"{nameof(MetadataClassInfo)}: Attribute.Parent kind is of type {ctor.Parent.Kind}");
-                                break;
-                        }
-                        break;
-                    }
-                    case HandleKind.MethodDefinition:
-                    {
-                        // The attribute is defined using it's constructor. 
-                        var ctor = reader.GetMethodDefinition((MethodDefinitionHandle)attribute.Constructor);
-
-                        // The return value of the constructor is void, so we get the declaring type,
-                        // which is the attribute class. We remove the namespace.
-                        var attr = ctor.GetDeclaringType().ToTypeString(reader);
-                        attr = attr.Substring(attr.LastIndexOf('.') + 1);
-
-                        // TODO: We can move this code to the outer scope, as the attribute is defined
-                        //       in that scope.
-                        // We get all the parameters passed to the method, which are FixedArguments
-                        // or NamedArguments. For now we are only interested in the named arguments.
-                        var parameters = attribute.DecodeValue(MetadataCustomAttributeTypeProvider.Instance);
-                        attributes[attr] = [];
-
-                        // We add all named arguments of type string and their values to the dictionary.
-                        foreach (var na in parameters.NamedArguments)
-                        {
-                            if (na.Type == "string")
-                            {
-                                attributes[attr][na.Name!] = (string) na.Value!;
-                            }   
-                        }
-                        break;
-                    }
-                    default:
-                        Console.Error.WriteLine($"{nameof(MetadataClassInfo)}: Attribute.Constructor kind is of type {attribute.Constructor.Kind}");
-                        break;
-                }
+                var attribute = new MetadataAttributeInfo(reader.GetCustomAttribute(attributeHandle), Reader!);
+                if (!string.IsNullOrEmpty(attribute.Name))
+                    attributes[attribute.Name!] = attribute;
             }
         }
 
@@ -153,9 +102,9 @@ namespace Z3
             }
         }
 
-        public ReadOnlyDictionary<string, MetadataPropertyInfo> Properties { get { return properties.AsReadOnly(); } }
+        public IReadOnlyDictionary<string, MetadataPropertyInfo> Properties { get { return properties.AsReadOnly(); } }
 
-        public ReadOnlyDictionary<string, MetadataFieldInfo> Fields { get { return fields.AsReadOnly(); } }
+        public IReadOnlyDictionary<string, MetadataFieldInfo> Fields { get { return fields.AsReadOnly(); } }
 
         public MetadataClassInfo? BaseType { get; private set; }
 
@@ -165,6 +114,6 @@ namespace Z3
 
         public string FullName { get { return Namespace + "." + Name; } }
 
-        public IReadOnlyDictionary<string, Dictionary<string, string>> Attributes { get { return attributes.AsReadOnly(); } }
+        public IReadOnlyDictionary<string, MetadataAttributeInfo> Attributes { get { return attributes.AsReadOnly(); } }
     }
 }

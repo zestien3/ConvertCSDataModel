@@ -90,7 +90,7 @@ namespace Z3
                             case Language.TypeScript:
                                 {
                                     using var writer = GetOutput(TypeScriptFormatter.GetFileNameFromClass(classInfo));
-                                    (new TypeScriptFormatter(writer)).FormatClass(classInfo);
+                                    (new TypeScriptFormatter(assemblyInfo, writer)).FormatClass(classInfo);
                                     break;
                                 }
                         }

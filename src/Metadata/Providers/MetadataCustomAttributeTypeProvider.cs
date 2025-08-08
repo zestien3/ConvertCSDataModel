@@ -72,7 +72,7 @@ namespace Z3
 
         public string GetTypeFromSerializedName(string name)
         {
-            throw new NotImplementedException();
+            return name;
         }
 
         public PrimitiveTypeCode GetUnderlyingEnumType(string type)
