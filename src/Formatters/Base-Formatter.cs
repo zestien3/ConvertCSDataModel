@@ -2,17 +2,16 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Text;
-using System.Xml;
 
 namespace Z3
 {
     internal abstract class BaseFormatter
     {
         public static readonly List<string> csStandardTypes = new() { "void", "bool", "sbyte", "byte", "char",
-                                                                         "int16", "uint16", "int32", "uint32",
-                                                                         "int64", "uint64", "single", "double",
-                                                                         "string", "typedReference", "IntPtr", "UIntPtr",
-                                                                         "object", "System.DateTime" };
+                                                                      "int16", "uint16", "int32", "uint32",
+                                                                      "int64", "uint64", "single", "double",
+                                                                      "string", "typedReference", "IntPtr", "UIntPtr",
+                                                                      "object", "System.DateTime", "System.DateOnly" };
 
         protected TextWriter Output { get; }
 
@@ -69,6 +68,8 @@ namespace Z3
             WriteXmlDocumentation(classInfo.XmlComment, 0);
             OpenClass(classInfo);
 
+            WriteConstructor(classInfo);
+
             foreach (var property in classInfo.Properties.Values)
             {
                 Output.WriteLine();
@@ -98,6 +99,7 @@ namespace Z3
         protected abstract void WriteUsing(MetadataPropertyInfo classInfo);
         protected abstract void OpenNamespace(MetadataClassInfo classInfo);
         protected abstract void OpenClass(MetadataClassInfo classInfo);
+        protected abstract void WriteConstructor(MetadataClassInfo classInfo);
         protected abstract void WriteProperty(MetadataPropertyInfo classInfo);
         protected abstract void WriteField(MetadataFieldInfo classInfo);
         protected abstract void CloseClass(MetadataClassInfo classInfo);
@@ -133,13 +135,13 @@ namespace Z3
         {
             var result = new List<string>();
             var stringPart = new string(s[0], 1);
-            bool startOfString = true;
+            bool startOfStringPart = true;
             for (int i = 1; i < s.Length; i++)
             {
-                startOfString = startOfString && char.IsAsciiLetterUpper(s[i]);
-                if (char.IsAsciiLetterUpper(s[i]) && !startOfString)
+                startOfStringPart = startOfStringPart && char.IsAsciiLetterUpper(s[i]);
+                if (char.IsAsciiLetterUpper(s[i]) && !startOfStringPart)
                 {
-                    startOfString = true;
+                    startOfStringPart = true;
                     result.Add(stringPart);
                     stringPart = new string(s[i], 1);
                 }
@@ -151,6 +153,16 @@ namespace Z3
 
             result.Add(stringPart);
             return result;
+        }
+
+        /// <summary>
+        /// Convert the given string to CamelCasing (WhichLooksLikeThis).
+        /// </summary>
+        /// <param name="str">The string to convert.</param>
+        /// <returns>The CamelCase representation of the given string.</returns>
+        protected static string ToJSONCase(string str)
+        {
+            return char.ToLower(str[0]) + str.Substring(1);
         }
 
         /// <summary>

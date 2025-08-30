@@ -3,7 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using CommandLine;
+using Zestien3;
 
 namespace Z3
 {
@@ -42,6 +45,25 @@ namespace Z3
                     using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("ConvertCSDataModel.Demo.cs")!;
                     var reader = new StreamReader(stream);
                     Console.Out.WriteLine(reader.ReadToEnd());
+
+                    var company = new Company
+                    {
+                        Name = "Zestien3",
+                        CompanyIDkey = 42,
+                        Departments = [new Department
+                        {
+                            Manager = new Employee{
+                                Name = "Peter Laudy"
+                            },
+                            Name = "Development",
+                            Employees = [new Employee
+                            {
+                                Name = "Lao-Tzu"
+                            }]
+                        }]
+                    };
+
+                    // Console.Out.WriteLine(JsonSerializer.Serialize(company));
 
                     options.Languages = [Language.TypeScript];
                     return (Options?)options;

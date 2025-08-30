@@ -12,13 +12,13 @@ namespace Z3
                                                                        "number", "number", "number", "number",
                                                                        "number", "number", "number", "number",
                                                                        "string", "<TYPEDREFERENCE>", "<INTPTR>", "<UINTPTR>",
-                                                                       "<OBJECT>", "Date" };
+                                                                       "<OBJECT>", "Date", "Date" };
 
         private static readonly List<string> tsStandardTypeValues = new() { "null", "false", "0", "0", "0",
                                                                             "0", "0", "0", "0",
                                                                             "0", "0", "0", "0",
                                                                             "\"\"", "<TYPEDREFERENCE>", "<INTPTR>", "<UINTPTR>",
-                                                                            "<OBJECT>", "new Date()" };
+                                                                            "<OBJECT>", "new Date()", "new Date()" };
 
         /// <summary>
         /// Return the file name to store the TypeScript representation of the given MetadataClassInfo.
@@ -131,12 +131,30 @@ namespace Z3
             Output.WriteLine($"export class {ToCamelCase(classInfo.Name!)} {{");
         }
 
+        protected override void WriteConstructor(MetadataClassInfo classInfo)
+        {
+            WriteIndent(1);
+            Output.WriteLine($"constructor(other?: {ToCamelCase(classInfo.Name!)}) {{");
+            WriteIndent(2);
+            Output.WriteLine("if (other) {");
+            foreach (var property in classInfo.Properties.Values)
+            {
+                WriteIndent(3);
+                Output.WriteLine($"this.{ToJSONCase(property.Name!)} = other.{ToJSONCase(property.Name!)};");
+            }
+            WriteIndent(2);
+            Output.WriteLine("}");
+            WriteIndent(1);
+            Output.WriteLine("}");
+            Output.WriteLine();
+        }
+
         protected override void WriteProperty(MetadataPropertyInfo propertyInfo)
         {
             if (!propertyInfo.DontSerialize)
             {
                 WriteIndent(1);
-                Output.Write($"public {ToPascalCase(propertyInfo.Name!)}: {FormatType(propertyInfo.Type!)} = ");
+                Output.Write($"public {ToJSONCase(propertyInfo.Name!)}: {FormatType(propertyInfo.Type!)} = ");
                 if (propertyInfo.Type!.EndsWith("]"))
                 {
                     Output.WriteLine("[];");
@@ -160,7 +178,7 @@ namespace Z3
             if (!fieldInfo.DontSerialize)
             {
                 WriteIndent(1);
-                Output.Write($"public {ToPascalCase(fieldInfo.Name!)}: {FormatType(fieldInfo.Type!)} ");
+                Output.Write($"public {ToJSONCase(fieldInfo.Name!)}: {FormatType(fieldInfo.Type!)} ");
                 if (fieldInfo.Type!.EndsWith("[]"))
                 {
                     Output.WriteLine("[];");
@@ -195,9 +213,9 @@ namespace Z3
                 return TypeScriptFormatter.tsStandardTypes[BaseFormatter.csStandardTypes.IndexOf(type)];
             }
 
-            if (type.StartsWith("System.Collections.Generic.List`1["))
+            if (type.Contains("`1["))
             {
-                type = type.Substring("System.Collections.Generic.List`1[".Length);
+                type = type.Substring(type.IndexOf("`1[") + 2);
                 type = type.Substring(0, type.Length - 1);
                 if (IsStandardType(type))
                 {

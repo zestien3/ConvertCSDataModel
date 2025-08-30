@@ -30,7 +30,7 @@ namespace Zestien3
     /// It represents a company with various departments.
     /// </remarks>
     [UseInFrontend(SubFolder = "Demo")]
-    public abstract class Company
+    public class Company
     {
         /// <summary>
         /// The name of the Company.
@@ -40,7 +40,7 @@ namespace Zestien3
         /// <summary>
         /// The ID of this company.
         /// </summary>
-        public int companyID;
+        public int CompanyIDkey { get; set; }
 
         /// <summary>
         /// The Departments of this Company.
@@ -70,7 +70,7 @@ namespace Zestien3
         /// <summary>
         /// The Employees of this Department.
         /// </summary>
-        public List<Employee>? Employees { get; set; }
+        public IList<Employee>? Employees { get; set; }
     }
 
     /// <summary>
