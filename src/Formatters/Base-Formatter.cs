@@ -50,7 +50,7 @@ namespace Z3
 
             foreach (var property in classInfo.Properties.Values)
             {
-                var type = FormatType(property.Type!).Replace("[]", "");
+                var type = FormatType(property);
                 if (!Usings.Contains(type))
                 {
                     Usings.Add(type);
@@ -96,7 +96,7 @@ namespace Z3
         protected abstract void WriteMultilineComment(IEnumerable<string> str, int indentLevel);
         protected abstract void WriteXmlDocumentation(XmlDocumentation? documentation, int indentLevel);
         protected abstract void WriteFileHeader(MetadataClassInfo classInfo);
-        protected abstract void WriteUsing(MetadataPropertyInfo classInfo);
+        protected abstract void WriteUsing(IMemberInfo classInfo);
         protected abstract void OpenNamespace(MetadataClassInfo classInfo);
         protected abstract void OpenClass(MetadataClassInfo classInfo);
         protected abstract void WriteConstructor(MetadataClassInfo classInfo);
@@ -104,21 +104,11 @@ namespace Z3
         protected abstract void WriteField(MetadataFieldInfo classInfo);
         protected abstract void CloseClass(MetadataClassInfo classInfo);
         protected abstract void CloseNamespace(MetadataClassInfo classInfo);
-        protected abstract string FormatType(string type);
+        protected abstract string FormatType(IMemberInfo memberInfo);
 
         protected void WriteIndent(int level)
         {
             Output.Write(new string(' ', IndentLength * level));
-        }
-
-        /// <summary>
-        /// Checks is a type is a standard type. These are defined in the <see cref="csStandardTypes"/> list.
-        /// </summary>
-        /// <param name="type">The type to be checked.</param>
-        /// <returns>True if it is a standard type, false otherwise.</returns>
-        protected static bool IsStandardType(string type)
-        {
-            return csStandardTypes.Contains(type);
         }
 
         /// <summary>

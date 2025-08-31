@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Reflection.Metadata;
+using Zestien3;
 
 namespace Z3
 {
@@ -30,6 +30,13 @@ namespace Z3
                 var attribute = new MetadataAttributeInfo(reader.GetCustomAttribute(attributeHandle), Reader!);
                 if (!string.IsNullOrEmpty(attribute.Name))
                     attributes[attribute.Name!] = attribute;
+            }
+
+            // Get the SubFolder where the file for this classinfo needs to be stored.
+            if (attributes.TryGetValue(nameof(UseInFrontendAttribute), out var attr) &&
+                attr.NamedArguments.TryGetValue(nameof(UseInFrontendAttribute.SubFolder), out var subFolder))
+            {
+                this.SubFolder = (string)subFolder.Value!;
             }
         }
 
@@ -113,6 +120,8 @@ namespace Z3
         public string Namespace { get; }
 
         public string FullName { get { return Namespace + "." + Name; } }
+
+        public string SubFolder { get; private set; } = string.Empty;
 
         public IReadOnlyDictionary<string, MetadataAttributeInfo> Attributes { get { return attributes.AsReadOnly(); } }
     }

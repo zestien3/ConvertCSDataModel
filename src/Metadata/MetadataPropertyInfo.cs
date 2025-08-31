@@ -4,7 +4,7 @@ using System.Reflection.Metadata;
 
 namespace Z3
 {
-    internal class MetadataPropertyInfo : MetadataInfo
+    internal class MetadataPropertyInfo : MetadataInfo, IMemberInfo
     {
         private PropertyDefinition propertyDef;
 
@@ -14,6 +14,7 @@ namespace Z3
         {
             propertyDef = propertyDefinition;
             Name = Reader!.GetString(propertyDef.Name);
+            OwningClass = classInfo;
 
             XmlMemberName = $"P:{classInfo.FullName}.{Name}";
         }
@@ -29,9 +30,15 @@ namespace Z3
                         var signature = propertyDef.DecodeSignature<string, MetadataInfo>(MetadataSignatureTypeProvider.Instance, this);
                         // TODO: For now we use this 'hack'
                         //       We should create a class that converts C# types to TS types.
-                        Type = signature.ReturnType;
+                        Type = MinimizedType = signature.ReturnType;
+                        IsArray = MinimizedType.Contains("`1[");
+                        if (IsArray)
+                        {
+                            MinimizedType = MinimizedType.Substring(MinimizedType.IndexOf("`1[") + 3);
+                            MinimizedType = MinimizedType.Substring(0, MinimizedType.Length - 1);
+                        }
 
-                        IsStandardType = BaseFormatter.csStandardTypes.Contains(Type!);
+                        IsStandardType = BaseFormatter.csStandardTypes.Contains(MinimizedType!);
 
                         // We are going to look for Custom Attributes.
                         // For now we are only interested in JsonIgnoreAttribute.
@@ -55,12 +62,18 @@ namespace Z3
             }
         }
 
+        public MetadataClassInfo OwningClass { get; private set; }
+
         public string? Type { get; private set; }
+
+        public string? MinimizedType { get; private set; }
 
         public bool IsStandardType { get; private set; }
 
-        public IReadOnlyDictionary<string, MetadataAttributeInfo> Attributes => attributes.AsReadOnly();
+        public bool IsArray { get; private set; }
 
         public bool DontSerialize => attributes.ContainsKey("JsonIgnoreAttribute");
+
+        public IReadOnlyDictionary<string, MetadataAttributeInfo> Attributes => attributes.AsReadOnly();
     }
 }

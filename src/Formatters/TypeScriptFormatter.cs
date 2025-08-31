@@ -30,13 +30,7 @@ namespace Z3
         /// <returns>The file name to store the TypeScript representation of the given MetadataClassInfo.</returns>
         public static string GetFileNameFromClass(MetadataClassInfo classInfo)
         {
-            if (classInfo.Attributes.ContainsKey(nameof(UseInFrontendAttribute)) &&
-                classInfo.Attributes[nameof(UseInFrontendAttribute)].NamedArguments.ContainsKey(nameof(UseInFrontendAttribute.SubFolder)))
-            {
-                var subFolder = classInfo.Attributes[nameof(UseInFrontendAttribute)].NamedArguments[nameof(UseInFrontendAttribute.SubFolder)];
-                return Path.Combine((string)subFolder.Value!, $"{ToKebabCase(classInfo.Name!)}.ts");
-            }
-            return $"{ToKebabCase(classInfo.Name!)}.ts";
+            return Path.Combine(classInfo.SubFolder, $"{ToKebabCase(classInfo.Name!)}.ts");
         }
 
         /// <summary>
@@ -96,27 +90,23 @@ namespace Z3
             // TypeScript does not have a file header.
         }
 
-        protected override void WriteUsing(MetadataPropertyInfo propertyInfo)
+        protected override void WriteUsing(IMemberInfo memberInfo)
         {
-            if (!propertyInfo.DontSerialize)
+            if (!memberInfo.DontSerialize)
             {
-                string type = propertyInfo.Type!;
-                if (!IsStandardType(type))
+                string type = memberInfo.MinimizedType!;
+                if (!memberInfo.IsStandardType)
                 {
-                    string subFolder = string.Empty;
+                    string subFolder = "./";
                     if (AssemblyInfo.ClassesByName.TryGetValue(type, out MetadataClassInfo? importedClass))
                     {
-                        if (importedClass.Attributes.TryGetValue(nameof(UseInFrontendAttribute), out MetadataAttributeInfo? attributeInfo))
-                        {
-                            if (attributeInfo.NamedArguments.ContainsKey("SubFolder"))
-                            {
-                                subFolder = (string)attributeInfo.NamedArguments["SubFolder"].Value! + '/';
-                            }
-                        }
+                        subFolder = "./" + importedClass.SubFolder;
                     }
 
-                    var formattedType = FormatType(type).Replace("[]", "");
-                    Output.WriteLine($"import {{ {formattedType} }} from \"./{subFolder}{ToKebabCase(formattedType)}.ts\";");
+                    subFolder = Path.GetRelativePath(memberInfo.OwningClass.SubFolder, subFolder).Replace("\\", "/");
+
+                    var formattedType = FormatType(memberInfo);
+                    Output.WriteLine($"import {{ {formattedType} }} from \"{subFolder}/{ToKebabCase(formattedType)}.ts\";");
                 }
             }
         }
@@ -154,8 +144,8 @@ namespace Z3
             if (!propertyInfo.DontSerialize)
             {
                 WriteIndent(1);
-                Output.Write($"public {ToJSONCase(propertyInfo.Name!)}: {FormatType(propertyInfo.Type!)} = ");
-                if (propertyInfo.Type!.EndsWith("]"))
+                Output.Write($"public {ToJSONCase(propertyInfo.Name!)}: {FormatType(propertyInfo)}{(propertyInfo.IsArray ? "[]" : "")} = ");
+                if (propertyInfo.IsArray)
                 {
                     Output.WriteLine("[];");
                 }
@@ -167,7 +157,7 @@ namespace Z3
                     }
                     else
                     {
-                        Output.WriteLine($"new {FormatType(propertyInfo.Type!)}();");
+                        Output.WriteLine($"new {FormatType(propertyInfo)}();");
                     }
                 }
             }
@@ -178,7 +168,7 @@ namespace Z3
             if (!fieldInfo.DontSerialize)
             {
                 WriteIndent(1);
-                Output.Write($"public {ToJSONCase(fieldInfo.Name!)}: {FormatType(fieldInfo.Type!)} ");
+                Output.Write($"public {ToJSONCase(fieldInfo.Name!)}: {FormatType(fieldInfo)}{(fieldInfo.IsArray ? "[]" : "")} = ");
                 if (fieldInfo.Type!.EndsWith("[]"))
                 {
                     Output.WriteLine("[];");
@@ -190,7 +180,7 @@ namespace Z3
                     }
                     else
                     {
-                        Output.WriteLine($"new {FormatType(fieldInfo.Type!)}();");
+                        Output.WriteLine($"new {FormatType(fieldInfo)}();");
                     }
                 }
             }
@@ -206,32 +196,25 @@ namespace Z3
             // TypeScript does not support namespaces
         }
 
-        protected override string FormatType(string type)
+        protected override string FormatType(IMemberInfo memberInfo)
         {
-            if (IsStandardType(type))
+            if (string.IsNullOrEmpty(memberInfo.MinimizedType))
             {
-                return TypeScriptFormatter.tsStandardTypes[BaseFormatter.csStandardTypes.IndexOf(type)];
+                return string.Empty;
             }
 
-            if (type.Contains("`1["))
+            if (memberInfo.IsStandardType)
             {
-                type = type.Substring(type.IndexOf("`1[") + 2);
-                type = type.Substring(0, type.Length - 1);
-                if (IsStandardType(type))
-                {
-                    type = TypeScriptFormatter.tsStandardTypes[BaseFormatter.csStandardTypes.IndexOf(type)];
-                }
-
-                type += "[]";
+                return TypeScriptFormatter.tsStandardTypes[BaseFormatter.csStandardTypes.IndexOf(memberInfo.MinimizedType!)];
             }
 
             // Remove the namespace
-            if (type.Contains('.'))
+            if (memberInfo.MinimizedType!.Contains('.'))
             {
-                type = type.Substring(type.LastIndexOf('.') + 1);
+                return memberInfo.MinimizedType.Substring(memberInfo.MinimizedType.LastIndexOf('.') + 1);
             }
 
-            return type;
+            return memberInfo.MinimizedType;
         }
     }
 }
