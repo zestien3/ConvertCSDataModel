@@ -106,7 +106,7 @@ namespace Z3
                     subFolder = Path.GetRelativePath(memberInfo.OwningClass.SubFolder, subFolder).Replace("\\", "/");
 
                     var formattedType = FormatType(memberInfo);
-                    Output.WriteLine($"import {{ {formattedType} }} from \"{subFolder}/{ToKebabCase(formattedType)}.ts\";");
+                    Output.WriteLine($"import {{ {formattedType} }} from \"{subFolder}/{ToKebabCase(formattedType)}\";");
                 }
             }
         }
