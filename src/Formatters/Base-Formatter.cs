@@ -72,16 +72,20 @@ namespace Z3
 
             foreach (var property in classInfo.Properties.Values)
             {
-                Output.WriteLine();
-                WriteXmlDocumentation(property.XmlComment, 1);
-                WriteProperty(property);
+                if (!property.DontSerialize)
+                {
+                    Output.WriteLine();
+                    WriteXmlDocumentation(property.XmlComment, 1);
+                    WriteProperty(property);
+                }
             }
 
             foreach (var field in classInfo.Fields.Values)
             {
                 // Skip backing fields.
-                if (!field.Name!.StartsWith('<'))
+                if (!field.Name!.StartsWith('<') && !field.DontSerialize)
                 {
+                    Output.WriteLine();
                     WriteXmlDocumentation(field.XmlComment, 1);
                     WriteField(field);
                 }

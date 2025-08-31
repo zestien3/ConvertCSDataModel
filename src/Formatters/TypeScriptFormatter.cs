@@ -144,47 +144,41 @@ namespace Z3
 
         protected override void WriteProperty(MetadataPropertyInfo propertyInfo)
         {
-            if (!propertyInfo.DontSerialize)
+            WriteIndent(1);
+            Output.Write($"public {ToJSONCase(propertyInfo.Name!)}: {FormatType(propertyInfo)}{(propertyInfo.IsArray ? "[]" : "")} = ");
+            if (propertyInfo.IsArray)
             {
-                WriteIndent(1);
-                Output.Write($"public {ToJSONCase(propertyInfo.Name!)}: {FormatType(propertyInfo)}{(propertyInfo.IsArray ? "[]" : "")} = ");
-                if (propertyInfo.IsArray)
+                Output.WriteLine("[];");
+            }
+            else
+            {
+                if (propertyInfo.IsStandardType)
                 {
-                    Output.WriteLine("[];");
+                    Output.WriteLine($"{tsStandardTypeValues[BaseFormatter.csStandardTypes.IndexOf(propertyInfo.Type!)]};");
                 }
                 else
                 {
-                    if (propertyInfo.IsStandardType)
-                    {
-                        Output.WriteLine($"{tsStandardTypeValues[BaseFormatter.csStandardTypes.IndexOf(propertyInfo.Type!)]};");
-                    }
-                    else
-                    {
-                        Output.WriteLine($"new {FormatType(propertyInfo)}();");
-                    }
+                    Output.WriteLine($"new {FormatType(propertyInfo)}();");
                 }
             }
         }
 
         protected override void WriteField(MetadataFieldInfo fieldInfo)
         {
-            if (!fieldInfo.DontSerialize)
+            WriteIndent(1);
+            Output.Write($"public {ToJSONCase(fieldInfo.Name!)}: {FormatType(fieldInfo)}{(fieldInfo.IsArray ? "[]" : "")} = ");
+            if (fieldInfo.Type!.EndsWith("[]"))
             {
-                WriteIndent(1);
-                Output.Write($"public {ToJSONCase(fieldInfo.Name!)}: {FormatType(fieldInfo)}{(fieldInfo.IsArray ? "[]" : "")} = ");
-                if (fieldInfo.Type!.EndsWith("[]"))
+                Output.WriteLine("[];");
+            }
+            {
+                if (fieldInfo.IsStandardType)
                 {
-                    Output.WriteLine("[];");
+                    Output.WriteLine($"{tsStandardTypeValues[BaseFormatter.csStandardTypes.IndexOf(fieldInfo.Type!)]};");
                 }
+                else
                 {
-                    if (fieldInfo.IsStandardType)
-                    {
-                        Output.WriteLine($"{tsStandardTypeValues[BaseFormatter.csStandardTypes.IndexOf(fieldInfo.Type!)]};");
-                    }
-                    else
-                    {
-                        Output.WriteLine($"new {FormatType(fieldInfo)}();");
-                    }
+                    Output.WriteLine($"new {FormatType(fieldInfo)}();");
                 }
             }
         }
