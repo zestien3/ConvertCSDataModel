@@ -129,8 +129,11 @@ namespace Z3
             Output.WriteLine("if (other) {");
             foreach (var property in classInfo.Properties.Values)
             {
-                WriteIndent(3);
-                Output.WriteLine($"this.{ToJSONCase(property.Name!)} = other.{ToJSONCase(property.Name!)};");
+                if (!property.DontSerialize)
+                {
+                    WriteIndent(3);
+                    Output.WriteLine($"this.{ToJSONCase(property.Name!)} = other.{ToJSONCase(property.Name!)};");
+                }
             }
             WriteIndent(2);
             Output.WriteLine("}");
