@@ -14,7 +14,7 @@ namespace Z3
         {
             propertyDef = propertyDefinition;
             Name = Reader!.GetString(propertyDef.Name);
-            OwningClass = classInfo;
+            DefiningClass = classInfo;
 
             XmlMemberName = $"P:{classInfo.FullName}.{Name}";
         }
@@ -30,15 +30,15 @@ namespace Z3
                         var signature = propertyDef.DecodeSignature<string, MetadataInfo>(MetadataSignatureTypeProvider.Instance, this);
                         // TODO: For now we use this 'hack'
                         //       We should create a class that converts C# types to TS types.
-                        Type = MinimizedType = signature.ReturnType;
-                        IsArray = MinimizedType.Contains("`1[");
+                        Type = ReferencedType = signature.ReturnType;
+                        IsArray = ReferencedType.Contains("`1[");
                         if (IsArray)
                         {
-                            MinimizedType = MinimizedType.Substring(MinimizedType.IndexOf("`1[") + 3);
-                            MinimizedType = MinimizedType.Substring(0, MinimizedType.Length - 1);
+                            ReferencedType = ReferencedType.Substring(ReferencedType.IndexOf("`1[") + 3);
+                            ReferencedType = ReferencedType.Substring(0, ReferencedType.Length - 1);
                         }
 
-                        IsStandardType = BaseFormatter.csStandardTypes.Contains(MinimizedType!);
+                        IsStandardType = BaseFormatter.csStandardTypes.Contains(ReferencedType!);
 
                         // We are going to look for Custom Attributes.
                         // For now we are only interested in JsonIgnoreAttribute.
@@ -62,18 +62,40 @@ namespace Z3
             }
         }
 
-        public MetadataClassInfo OwningClass { get; private set; }
+        /// <summary>
+        /// The class where this property is defined.
+        /// </summary>
+        public MetadataClassInfo DefiningClass { get; private set; }
 
+        /// <summary>
+        /// The full name of the type, like System.Generic.List`1[SomeType].
+        /// </summary>
         public string? Type { get; private set; }
 
-        public string? MinimizedType { get; private set; }
+        /// <summary>
+        /// The base type which is referenced.
+        /// So if the full type is System.Generic.List`1[SomeType], this would be SomeType.
+        /// </summary>
+        public string? ReferencedType { get; private set; }
 
+        /// <summary>
+        /// Indicates if this ia a C# standard type like int32, string or object.
+        /// </summary>
         public bool IsStandardType { get; private set; }
 
+        /// <summary>
+        /// Indicates if this is an array or a list.
+        /// </summary>
         public bool IsArray { get; private set; }
 
+        /// <summary>
+        /// Indicates if this property should be serialized or not.
+        /// </summary>
         public bool DontSerialize => attributes.ContainsKey("JsonIgnoreAttribute");
 
+        /// <summary>
+        /// A list of attributes that are set on this property.
+        /// </summary>
         public IReadOnlyDictionary<string, MetadataAttributeInfo> Attributes => attributes.AsReadOnly();
     }
 }

@@ -90,7 +90,7 @@ namespace Z3
             // TypeScript does not have a file header.
         }
 
-        protected override void WriteUsing(string className, string currentSubFolder)
+        protected override void WriteFileReference(string className, string currentSubFolder)
         {
             if (AssemblyInfo.ClassesByName.TryGetValue(className, out var classInfo))
             {
@@ -147,8 +147,9 @@ namespace Z3
 
         protected override void WriteProperty(MetadataPropertyInfo propertyInfo)
         {
+            var type = FormatType(propertyInfo);
             WriteIndent(1);
-            Output.Write($"public {ToJSONCase(propertyInfo.Name!)}: {FormatType(propertyInfo)}{(propertyInfo.IsArray ? "[]" : "")} = ");
+            Output.Write($"public {ToJSONCase(propertyInfo.Name!)}: {type}{(propertyInfo.IsArray ? "[]" : "")} = ");
             if (propertyInfo.IsArray)
             {
                 Output.WriteLine("[];");
@@ -161,15 +162,16 @@ namespace Z3
                 }
                 else
                 {
-                    Output.WriteLine($"new {FormatType(propertyInfo)}();");
+                    Output.WriteLine($"new {type}();");
                 }
             }
         }
 
         protected override void WriteField(MetadataFieldInfo fieldInfo)
         {
+            var type = FormatType(fieldInfo);
             WriteIndent(1);
-            Output.Write($"public {ToJSONCase(fieldInfo.Name!)}: {FormatType(fieldInfo)}{(fieldInfo.IsArray ? "[]" : "")} = ");
+            Output.Write($"public {ToJSONCase(fieldInfo.Name!)}: {type}{(fieldInfo.IsArray ? "[]" : "")} = ");
             if (fieldInfo.Type!.EndsWith("[]"))
             {
                 Output.WriteLine("[];");
@@ -181,7 +183,7 @@ namespace Z3
                 }
                 else
                 {
-                    Output.WriteLine($"new {FormatType(fieldInfo)}();");
+                    Output.WriteLine($"new {type}();");
                 }
             }
         }
@@ -196,25 +198,9 @@ namespace Z3
             // TypeScript does not support namespaces
         }
 
-        protected override string FormatType(IMemberInfo memberInfo)
+        protected override string ToStandardType(int index)
         {
-            if (string.IsNullOrEmpty(memberInfo.MinimizedType))
-            {
-                return string.Empty;
-            }
-
-            if (memberInfo.IsStandardType)
-            {
-                return TypeScriptFormatter.tsStandardTypes[BaseFormatter.csStandardTypes.IndexOf(memberInfo.MinimizedType!)];
-            }
-
-            // Remove the namespace
-            if (memberInfo.MinimizedType!.Contains('.'))
-            {
-                return memberInfo.MinimizedType.Substring(memberInfo.MinimizedType.LastIndexOf('.') + 1);
-            }
-
-            return memberInfo.MinimizedType;
+            return TypeScriptFormatter.tsStandardTypes[index];
         }
     }
 }
