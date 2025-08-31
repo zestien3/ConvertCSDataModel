@@ -46,25 +46,6 @@ namespace Z3
                     var reader = new StreamReader(stream);
                     Console.Out.WriteLine(reader.ReadToEnd());
 
-                    var company = new Company
-                    {
-                        Name = "Zestien3",
-                        CompanyIDkey = 42,
-                        Departments = [new Department
-                        {
-                            Manager = new Employee{
-                                Name = "Peter Laudy"
-                            },
-                            Name = "Development",
-                            Employees = [new Employee
-                            {
-                                Name = "Lao-Tzu"
-                            }]
-                        }]
-                    };
-
-                    // Console.Out.WriteLine(JsonSerializer.Serialize(company));
-
                     options.Languages = [Language.TypeScript];
                     return (Options?)options;
                 },
