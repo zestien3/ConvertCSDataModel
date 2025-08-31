@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 
@@ -48,20 +49,37 @@ namespace Z3
             ], 0);
             WriteFileHeader(classInfo);
 
-            foreach (var property in classInfo.Properties.Values)
+            if (null != classInfo.BaseType)
             {
-                var type = FormatType(property);
+                var type = csStandardTypes.Contains(classInfo.BaseType.Name!) ? classInfo.BaseTypeFullName! : classInfo.BaseType.Name!;
                 if (!Usings.Contains(type))
                 {
                     Usings.Add(type);
-                    WriteUsing(property);
+                    WriteUsing(classInfo.BaseType.FullName, classInfo.SubFolder);
                 }
             }
 
-            if (Usings.Count > 0)
+            foreach (var property in classInfo.Properties.Values)
             {
-                Output.WriteLine();
+                var type = FormatType(property);
+                if (!Usings.Contains(type) && !property.DontSerialize && !property.IsStandardType)
+                {
+                    Usings.Add(type);
+                    WriteUsing(property.MinimizedType!, property.OwningClass.SubFolder);
+                }
             }
+
+            foreach (var field in classInfo.Fields.Values)
+            {
+                var type = FormatType(field);
+                if (!Usings.Contains(type) && !field.DontSerialize && !field.IsStandardType)
+                {
+                    Usings.Add(type);
+                    WriteUsing(field.MinimizedType!, field.OwningClass.SubFolder);
+                }
+            }
+
+            Output.WriteLine();
 
             OpenNamespace(classInfo);
 
@@ -82,7 +100,7 @@ namespace Z3
 
             foreach (var field in classInfo.Fields.Values)
             {
-                // Skip backing fields.
+                // Also skip backing fields.
                 if (!field.Name!.StartsWith('<') && !field.DontSerialize)
                 {
                     Output.WriteLine();
@@ -100,7 +118,7 @@ namespace Z3
         protected abstract void WriteMultilineComment(IEnumerable<string> str, int indentLevel);
         protected abstract void WriteXmlDocumentation(XmlDocumentation? documentation, int indentLevel);
         protected abstract void WriteFileHeader(MetadataClassInfo classInfo);
-        protected abstract void WriteUsing(IMemberInfo classInfo);
+        protected abstract void WriteUsing(string className, string currentSubFolder);
         protected abstract void OpenNamespace(MetadataClassInfo classInfo);
         protected abstract void OpenClass(MetadataClassInfo classInfo);
         protected abstract void WriteConstructor(MetadataClassInfo classInfo);

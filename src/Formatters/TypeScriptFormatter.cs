@@ -90,24 +90,16 @@ namespace Z3
             // TypeScript does not have a file header.
         }
 
-        protected override void WriteUsing(IMemberInfo memberInfo)
+        protected override void WriteUsing(string className, string currentSubFolder)
         {
-            if (!memberInfo.DontSerialize)
+            if (AssemblyInfo.ClassesByName.TryGetValue(className, out var classInfo))
             {
-                string type = memberInfo.MinimizedType!;
-                if (!memberInfo.IsStandardType)
-                {
-                    string subFolder = "./";
-                    if (AssemblyInfo.ClassesByName.TryGetValue(type, out MetadataClassInfo? importedClass))
-                    {
-                        subFolder = "./" + importedClass.SubFolder;
-                    }
+                var subFolder = ".\\" + classInfo.SubFolder;
 
-                    subFolder = Path.GetRelativePath(memberInfo.OwningClass.SubFolder, subFolder).Replace("\\", "/");
+                subFolder = Path.GetRelativePath(currentSubFolder, subFolder).Replace("\\", "/");
 
-                    var formattedType = FormatType(memberInfo);
-                    Output.WriteLine($"import {{ {formattedType} }} from \"{subFolder}/{ToKebabCase(formattedType)}\";");
-                }
+                string shortTypeName = className.Substring(className.LastIndexOf('.') + 1);
+                Output.WriteLine($"import {{ {shortTypeName} }} from \"{subFolder}/{ToKebabCase(shortTypeName)}\";");
             }
         }
 
@@ -118,13 +110,25 @@ namespace Z3
 
         protected override void OpenClass(MetadataClassInfo classInfo)
         {
-            Output.WriteLine($"export class {ToCamelCase(classInfo.Name!)} {{");
+            Output.Write($"export class {ToCamelCase(classInfo.Name!)} ");
+            if (null != classInfo.BaseType)
+            {
+                Output.Write($"extends {ToCamelCase(classInfo.BaseType.Name!)} ");
+            }
+            Output.WriteLine("{");
         }
 
         protected override void WriteConstructor(MetadataClassInfo classInfo)
         {
             WriteIndent(1);
             Output.WriteLine($"constructor(other?: {ToCamelCase(classInfo.Name!)}) {{");
+
+            if (null != classInfo.BaseType)
+            {
+                WriteIndent(2);
+                Output.WriteLine("super(other);");
+            }
+
             WriteIndent(2);
             Output.WriteLine("if (other) {");
             foreach (var property in classInfo.Properties.Values)
@@ -139,7 +143,6 @@ namespace Z3
             Output.WriteLine("}");
             WriteIndent(1);
             Output.WriteLine("}");
-            Output.WriteLine();
         }
 
         protected override void WriteProperty(MetadataPropertyInfo propertyInfo)

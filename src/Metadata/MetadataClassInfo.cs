@@ -36,7 +36,7 @@ namespace Z3
             if (attributes.TryGetValue(nameof(UseInFrontendAttribute), out var attr) &&
                 attr.NamedArguments.TryGetValue(nameof(UseInFrontendAttribute.SubFolder), out var subFolder))
             {
-                this.SubFolder = (string)subFolder.Value!;
+                SubFolder = (string)subFolder.Value!;
             }
         }
 
