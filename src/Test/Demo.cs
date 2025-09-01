@@ -24,67 +24,129 @@ namespace Zestien3
     }
 
     /// <summary>
+    /// Enumeration class for the demo of this application
+    /// </summary>
+    [UseInFrontend(SubFolder = "Demo\\Level1")]
+    public enum EnumDemo
+    {
+        /// <summary>
+        /// EnumDemo First value
+        /// </summary>
+        FirstValue,
+
+        /// <summary>
+        /// EnumDemo Second value
+        /// </summary>
+        SecondValue
+    }
+
+    /// <summary>
     /// Main class for the demo of this application.
     /// </summary>
     /// <remarks>
-    /// It represents a company with various departments.
+    /// It contains all available standard types.
     /// </remarks>
     [UseInFrontend(SubFolder = "Demo")]
-    public class Company
+    public class AllStandardTypes
     {
         /// <summary>
-        /// The name of the Company.
+        /// Property of type bool
         /// </summary>
-        public string? Name { get; set; }
+        public bool BoolProperty { get; set; }
 
         /// <summary>
-        /// The ID of this company.
+        /// Property of type sbyte
         /// </summary>
-        public int CompanyIDkey { get; set; }
+        public sbyte SByteProperty { get; set; }
 
         /// <summary>
-        /// The Departments of this Company.
+        /// Property of type byte
         /// </summary>
-        public List<Department>? Departments { get; set; }
-    }
-
-    /// <summary>
-    /// Another class for the demo of this application.
-    /// </summary>
-    /// <remarks>
-    /// It represents a department with its manager and employees.
-    /// </remarks>
-    [UseInFrontend(SubFolder = "Demo")]
-    public class Department
-    {
-        /// <summary>
-        /// The name of this Department.
-        /// </summary>
-        public string? Name { get; set; }
+        public byte ByteProperty { get; set; }
 
         /// <summary>
-        /// The Manager of this Department.
+        /// Property of type char
         /// </summary>
-        public Employee? Manager { get; set; }
+        public char CharProperty { get; set; }
 
         /// <summary>
-        /// The Employees of this Department.
+        /// Property of type Int16
         /// </summary>
-        public IList<Employee>? Employees { get; set; }
-    }
+        public Int16 Int16Property { get; set; }
 
-    /// <summary>
-    /// Last class for the demo of this application.
-    /// </summary>
-    /// <remarks>
-    /// It represents an employee.
-    /// </remarks>
-    [UseInFrontend(SubFolder = "Demo")]
-    public class Employee
-    {
         /// <summary>
-        /// The name of the Employee
+        /// Property of type UInt16
         /// </summary>
-        public string? Name { get; set; }
+        public UInt16 UInt16Property { get; set; }
+
+        /// <summary>
+        /// Property of type Int32
+        /// </summary>
+        public Int32 Int32Property { get; set; }
+
+        /// <summary>
+        /// Property of type UInt32
+        /// </summary>
+        public UInt32 UInt32Property { get; set; }
+
+        /// <summary>
+        /// Property of type Int64
+        /// </summary>
+        public Int64 Int64Property { get; set; }
+
+        /// <summary>
+        /// Property of type UInt64
+        /// </summary>
+        public UInt64 UInt64Property { get; set; }
+
+        /// <summary>
+        /// Property of type Single
+        /// </summary>
+        public Single SingleProperty { get; set; }
+
+        /// <summary>
+        /// Property of type Double
+        /// </summary>
+        public Double DoubleProperty { get; set; }
+
+        /// <summary>
+        /// Property of type String
+        /// </summary>
+        public string StringProperty { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Property of type IntPtr
+        /// </summary>
+        public IntPtr IntPtrProperty { get; set; } = IntPtr.Zero;
+
+        /// <summary>
+        /// Property of type UIntPtr
+        /// </summary>
+        public UIntPtr UIntPtrProperty { get; set; } = UIntPtr.Zero;
+
+        /// <summary>
+        /// Property of type Object
+        /// </summary>
+        public Object ObjectProperty { get; set; } = new();
+
+        /// <summary>
+        /// Property of type DateTime
+        /// </summary>
+        public DateTime DateTimeProperty { get; set; }
+
+        /// <summary>
+        /// Property of type DateOnly
+        /// </summary>
+        public DateOnly DateOnlyProperty { get; set; }
+
+        /// <summary>
+        /// Property of type Guid
+        /// </summary>
+        public Guid GuidProperty { get; set; } = Guid.Empty;
+
+        /// <summary>
+        /// Property of type EnumDemo
+        /// </summary>
+        public EnumDemo EnumProperty { get; set; }
     }
 }
