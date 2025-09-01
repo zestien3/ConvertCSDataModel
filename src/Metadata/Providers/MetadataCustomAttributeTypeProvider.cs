@@ -79,6 +79,12 @@ namespace Z3
         {
             MetadataClassInfo? runtimeType = TypeResolver(type.Replace('/', '+'));
 
+            // Default underlying value for Enum is int, so we try that if we  can't
+            // find the type. WIll work in most cases. The alternative is to throw an
+            // exception, which will probably happen anyway if we get it wrong here.
+            if (null == runtimeType)
+                return PrimitiveTypeCode.Int32;
+
             if (runtimeType?.BaseType?.FullName == typeof(SByte).FullName)
                 return PrimitiveTypeCode.SByte;
 
@@ -199,12 +205,12 @@ namespace Z3
                     }
                 }
 
-                Console.Error.WriteLine($"Could not find {typeName} in assembly {assemblyName}");
+                Logger.LogDebug($"Could not find {typeName} in assembly {assemblyName}");
                 return null;
             }
             else
             {
-                Console.Error.WriteLine($"Could not find assembly containing {typeName}");
+                Logger.LogDebug($"Could not find assembly containing {typeName}");
                 return null;
             }
         }
