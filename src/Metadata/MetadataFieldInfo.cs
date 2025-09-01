@@ -15,7 +15,7 @@ namespace Z3
             Name = Reader!.GetString(fieldDef.Name);
             DefiningClass = classInfo;
 
-            XmlMemberName = $"T:{classInfo.FullName}.{Name}";
+            XmlMemberName = $"F:{classInfo.FullName}.{Name}";
         }
 
         public override void AllClassesLoaded(MetadataInfo? metadataInfo, int depthToLoad)
@@ -37,7 +37,21 @@ namespace Z3
                             ReferencedType = ReferencedType.Substring(0, ReferencedType.Length - 1);
                         }
 
+                        if (DefiningClass.ContainingAssembly.ClassesByName.TryGetValue(Type, out var implementedClass))
+                        {
+                            ImplementedClass = implementedClass;
+                        }
+
                         IsStandardType = BaseFormatter.csStandardTypes.Contains(ReferencedType!);
+
+                        // The SpecialNameAttribute is set on (at least) the value__ field of an Enum.
+                        // We do not need it in the definition and skiop it in this more generic way.
+                        // It could be that this will cause problems with other fields where this
+                        // flag is set in the field definition.
+                        if (fieldDef.Attributes.HasFlag(System.Reflection.FieldAttributes.SpecialName))
+                        {
+                            attributes["SpecialNameAttribute"] = new MetadataAttributeInfo("SpecialNameAttribute");
+                        }
 
                         // We are going to look for Custom Attributes.
                         // For now we are only interested in JsonIgnoreAttribute.
@@ -51,7 +65,10 @@ namespace Z3
                                 attributes[customAttribute.Name!] = customAttribute;
                         }
                     }
-                    catch (ArgumentOutOfRangeException) { }
+                    catch (Exception)
+                    {
+                        Logger.LogMessage($"Caught an exception while deciphering {DefiningClass.FullName}.{this.Name}");
+                    }
                 }
                 else
                 {
@@ -64,6 +81,11 @@ namespace Z3
         /// The class where this field is defined.
         /// </summary>
         public MetadataClassInfo DefiningClass { get; private set; }
+
+        /// <summary>
+        /// The class which this field is implementing.
+        /// </summary>
+        public MetadataClassInfo? ImplementedClass { get; private set; }
 
         /// <summary>
         /// The full name of the type, like System.Generic.List`1[SomeType].
