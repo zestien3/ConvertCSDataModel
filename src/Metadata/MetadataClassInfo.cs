@@ -12,8 +12,9 @@ namespace Z3
         private Dictionary<string, MetadataFieldInfo> fields = [];
         private Dictionary<string, MetadataAttributeInfo> attributes = [];
 
-        public MetadataClassInfo(TypeDefinition typeDefinition, MetadataReader reader, XmlDocumentationFile? xmlDoc) : base(reader, xmlDoc)
+        public MetadataClassInfo(MetadataAssemblyInfo assembly, TypeDefinition typeDefinition, MetadataReader reader, XmlDocumentationFile? xmlDoc) : base(reader, xmlDoc)
         {
+            ContainingAssembly = assembly;
             typeDef = typeDefinition;
             Name = reader.GetString(typeDef.Name);
             Namespace = reader.GetString(typeDef.Namespace);
@@ -59,6 +60,7 @@ namespace Z3
                         {
                             var baseType = Reader!.GetTypeReference((TypeReferenceHandle)typeDef.BaseType);
                             BaseTypeFullName = Reader.GetString(baseType.Namespace) + "." + Reader.GetString(baseType.Name);
+                            IsEnum = BaseTypeFullName == "System.Enum";
                             break;
                         }
                         case HandleKind.TypeSpecification:
@@ -82,26 +84,23 @@ namespace Z3
                     foreach (var propertyHandle in typeDef.GetProperties())
                     {
                         var propertyInfo = new MetadataPropertyInfo(Reader!.GetPropertyDefinition(propertyHandle), this, Reader, XmlDoc);
-                        properties[propertyInfo.Name!] = propertyInfo;
+                        propertyInfo.AllClassesLoaded(this, depthToLoad - 1);
+                        if (!propertyInfo.DontSerialize)
+                        {
+                            properties[propertyInfo.Name!] = propertyInfo;
+                        }
                     }
 
                     foreach (var fieldHandle in typeDef.GetFields())
                     {
                         var fieldInfo = new MetadataFieldInfo(Reader!.GetFieldDefinition(fieldHandle), this, Reader, XmlDoc);
-                        fields[fieldInfo.Name!] = fieldInfo;
-                    }
-                }
-
-                if (depthToLoad >= LoadedDepth + 2)
-                {
-                    foreach (var propInfo in Properties.Values)
-                    {
-                        propInfo.AllClassesLoaded(this, depthToLoad - 1);
-                    }
-
-                    foreach (var fieldInfo in Fields.Values)
-                    {
                         fieldInfo.AllClassesLoaded(this, depthToLoad - 1);
+                        if (!fieldInfo.DontSerialize &&
+                            !fieldInfo.Attributes.ContainsKey("CompilerGeneratedAttribute") &&
+                            !fieldInfo.Attributes.ContainsKey("SpecialNameAttribute"))
+                        {
+                            fields[fieldInfo.Name!] = fieldInfo;
+                        }
                     }
                 }
 
@@ -109,11 +108,15 @@ namespace Z3
             }
         }
 
+        public MetadataAssemblyInfo ContainingAssembly { get; private set; }
+
         public IReadOnlyDictionary<string, MetadataPropertyInfo> Properties { get { return properties.AsReadOnly(); } }
 
         public IReadOnlyDictionary<string, MetadataFieldInfo> Fields { get { return fields.AsReadOnly(); } }
 
         public MetadataClassInfo? BaseType { get; private set; }
+
+        public bool IsEnum { get; private set; } = false;
 
         public string? BaseTypeFullName { get; private set; }
 

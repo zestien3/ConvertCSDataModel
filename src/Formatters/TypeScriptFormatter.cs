@@ -12,13 +12,15 @@ namespace Z3
                                                                        "number", "number", "number", "number",
                                                                        "number", "number", "number", "number",
                                                                        "string", "<TYPEDREFERENCE>", "<INTPTR>", "<UINTPTR>",
-                                                                       "<OBJECT>", "Date", "Date" };
+                                                                       "unknown", "Date", "Date", "string",
+                                                                       "Enum" };
 
         private static readonly List<string> tsStandardTypeValues = new() { "null", "false", "0", "0", "0",
                                                                             "0", "0", "0", "0",
                                                                             "0", "0", "0", "0",
                                                                             "\"\"", "<TYPEDREFERENCE>", "<INTPTR>", "<UINTPTR>",
-                                                                            "<OBJECT>", "new Date()", "new Date()" };
+                                                                            "undefined", "new Date()", "new Date()", "\"00000000-0000-0000-0000-000000000000\"",
+                                                                            "0" };
 
         /// <summary>
         /// Return the file name to store the TypeScript representation of the given MetadataClassInfo.
@@ -40,6 +42,16 @@ namespace Z3
         /// <param name="output">The output to which the type script code must be written.</param>
         public TypeScriptFormatter(MetadataAssemblyInfo assemblyInfo, TextWriter output) : base(assemblyInfo, output)
         {
+            if (tsStandardTypes.Count != csStandardTypes.Count)
+            {
+                Logger.LogFatal($"The {nameof(TypeScriptFormatter)}.{nameof(tsStandardTypes)} array does not contain the correct number of entries.");
+            }
+
+            if (tsStandardTypeValues.Count != csStandardTypes.Count)
+            {
+                Logger.LogFatal($"The {nameof(TypeScriptFormatter)}.{nameof(tsStandardTypeValues)} array does not contain the correct number of entries.");
+            }
+
             IndentLength = 2;
         }
 
@@ -110,7 +122,15 @@ namespace Z3
 
         protected override void OpenClass(MetadataClassInfo classInfo)
         {
-            Output.Write($"export class {ToCamelCase(classInfo.Name!)} ");
+            if (classInfo.IsEnum)
+            {
+                Output.Write($"export enum {ToCamelCase(classInfo.Name!)} ");
+            }
+            else
+            {
+                Output.Write($"export class {ToCamelCase(classInfo.Name!)} ");
+            }
+
             if (null != classInfo.BaseType)
             {
                 Output.Write($"extends {ToCamelCase(classInfo.BaseType.Name!)} ");
@@ -120,29 +140,29 @@ namespace Z3
 
         protected override void WriteConstructor(MetadataClassInfo classInfo)
         {
-            WriteIndent(1);
-            Output.WriteLine($"constructor(other?: {ToCamelCase(classInfo.Name!)}) {{");
-
-            if (null != classInfo.BaseType)
+            if (!classInfo.IsEnum)
             {
+                WriteIndent(1);
+                Output.WriteLine($"constructor(other?: {ToCamelCase(classInfo.Name!)}) {{");
+
+                if (null != classInfo.BaseType)
+                {
+                    WriteIndent(2);
+                    Output.WriteLine("super(other);");
+                }
+
                 WriteIndent(2);
-                Output.WriteLine("super(other);");
-            }
-
-            WriteIndent(2);
-            Output.WriteLine("if (other) {");
-            foreach (var property in classInfo.Properties.Values)
-            {
-                if (!property.DontSerialize)
+                Output.WriteLine("if (other) {");
+                foreach (var property in classInfo.Properties.Values)
                 {
                     WriteIndent(3);
                     Output.WriteLine($"this.{ToJSONCase(property.Name!)} = other.{ToJSONCase(property.Name!)};");
                 }
+                WriteIndent(2);
+                Output.WriteLine("}");
+                WriteIndent(1);
+                Output.WriteLine("}");
             }
-            WriteIndent(2);
-            Output.WriteLine("}");
-            WriteIndent(1);
-            Output.WriteLine("}");
         }
 
         protected override void WriteProperty(MetadataPropertyInfo propertyInfo)
@@ -162,28 +182,55 @@ namespace Z3
                 }
                 else
                 {
-                    Output.WriteLine($"new {type}();");
+                    if ((null != propertyInfo.ImplementedClass) && propertyInfo.ImplementedClass.IsEnum)
+                    {
+                        Output.WriteLine($"{propertyInfo.ImplementedClass.Name}.{propertyInfo.ImplementedClass.Fields.First().Value.Name};");
+                    }
+                    else
+                    {
+                        Output.WriteLine($"new {type}();");
+                    }
                 }
             }
         }
 
         protected override void WriteField(MetadataFieldInfo fieldInfo)
         {
-            var type = FormatType(fieldInfo);
-            WriteIndent(1);
-            Output.Write($"public {ToJSONCase(fieldInfo.Name!)}: {type}{(fieldInfo.IsArray ? "[]" : "")} = ");
-            if (fieldInfo.Type!.EndsWith("[]"))
+            if (fieldInfo.DefiningClass.IsEnum)
             {
-                Output.WriteLine("[];");
+                WriteXmlDocumentation(fieldInfo.XmlComment, 1);
+                WriteIndent(1);
+                Output.Write(fieldInfo.Name);
+                Output.WriteLine((fieldInfo == fieldInfo.DefiningClass.Fields.Last().Value) ? "" : ",");
             }
+            else
             {
-                if (fieldInfo.IsStandardType)
+                WriteXmlDocumentation(fieldInfo.XmlComment, 1);
+
+                var type = FormatType(fieldInfo);
+                WriteIndent(1);
+                Output.Write($"public {ToJSONCase(fieldInfo.Name!)}: {type}{(fieldInfo.IsArray ? "[]" : "")} = ");
+                if (fieldInfo.Type!.EndsWith("[]"))
                 {
-                    Output.WriteLine($"{tsStandardTypeValues[BaseFormatter.csStandardTypes.IndexOf(fieldInfo.Type!)]};");
+                    Output.WriteLine("[];");
                 }
                 else
                 {
-                    Output.WriteLine($"new {type}();");
+                    if (fieldInfo.IsStandardType)
+                    {
+                        Output.WriteLine($"{tsStandardTypeValues[BaseFormatter.csStandardTypes.IndexOf(fieldInfo.Type!)]};");
+                    }
+                    else
+                    {
+                        if ((null != fieldInfo.ImplementedClass) && fieldInfo.ImplementedClass.IsEnum)
+                        {
+                            Output.WriteLine($"{fieldInfo.ImplementedClass.Name}.{fieldInfo.ImplementedClass.Fields.First().Value.Name};");
+                        }
+                        else
+                        {
+                            Output.WriteLine($"new {type}();");
+                        }
+                    }
                 }
             }
         }

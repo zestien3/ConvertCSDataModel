@@ -69,7 +69,7 @@ namespace Z3
                 AddTypeToClass(subTypeDefinition);
             }
 
-            var typeInfo = new MetadataClassInfo(typeDef, Reader, XmlDoc);
+            var typeInfo = new MetadataClassInfo(this, typeDef, Reader, XmlDoc);
 
             classesByName[typeInfo.FullName] = typeInfo;
             classesByHandle[typeDefHandle] = typeInfo;

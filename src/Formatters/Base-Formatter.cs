@@ -12,14 +12,14 @@ namespace Z3
         public static readonly List<string> csStandardTypes = new() { "void", "bool", "sbyte", "byte", "char",
                                                                       "int16", "uint16", "int32", "uint32",
                                                                       "int64", "uint64", "single", "double",
-                                                                      "string", "typedReference", "IntPtr", "UIntPtr",
-                                                                      "object", "System.DateTime", "System.DateOnly" };
+                                                                      "string", "typedReference", "IntPtr", "UIntPtr", "object",
+                                                                      "System.DateTime", "System.DateOnly", "System.Guid", "System.Enum" };
 
         protected TextWriter Output { get; }
 
         protected MetadataAssemblyInfo AssemblyInfo { get; }
 
-        protected List<string> Usings { get; }
+        protected List<string> ReferencedFiles { get; }
 
         protected int IndentLength { get; set; }
 
@@ -32,7 +32,7 @@ namespace Z3
         {
             Output = output;
             AssemblyInfo = assemblyInfo;
-            Usings = [];
+            ReferencedFiles = [];
             IndentLength = 4;
         }
 
@@ -65,9 +65,9 @@ namespace Z3
             if (null != classInfo.BaseType)
             {
                 var type = csStandardTypes.Contains(classInfo.BaseType.Name!) ? classInfo.BaseTypeFullName! : classInfo.BaseType.Name!;
-                if (!Usings.Contains(type))
+                if (!ReferencedFiles.Contains(type))
                 {
-                    Usings.Add(type);
+                    ReferencedFiles.Add(type);
                     WriteFileReference(classInfo.BaseType.FullName, classInfo.SubFolder);
                 }
             }
@@ -76,9 +76,9 @@ namespace Z3
             foreach (var property in classInfo.Properties.Values)
             {
                 var type = FormatType(property);
-                if (!Usings.Contains(type) && !property.DontSerialize && !property.IsStandardType)
+                if (!ReferencedFiles.Contains(type) && !property.IsStandardType)
                 {
-                    Usings.Add(type);
+                    ReferencedFiles.Add(type);
                     WriteFileReference(property.ReferencedType!, property.DefiningClass.SubFolder);
                 }
             }
@@ -87,14 +87,17 @@ namespace Z3
             foreach (var field in classInfo.Fields.Values)
             {
                 var type = FormatType(field);
-                if (!Usings.Contains(type) && !field.DontSerialize && !field.IsStandardType)
+                if (!ReferencedFiles.Contains(type) && !field.IsStandardType)
                 {
-                    Usings.Add(type);
+                    ReferencedFiles.Add(type);
                     WriteFileReference(field.ReferencedType!, field.DefiningClass.SubFolder);
                 }
             }
 
-            Output.WriteLine();
+            if (ReferencedFiles.Count > 0)
+            {
+                Output.WriteLine();
+            }
 
             // Here we can write the namespace the class is defined in.
             OpenNamespace(classInfo);
@@ -110,24 +113,22 @@ namespace Z3
             // Now we write the definitions of all properties that are to be serialized.
             foreach (var property in classInfo.Properties.Values)
             {
-                if (!property.DontSerialize)
-                {
-                    Output.WriteLine();
-                    WriteXmlDocumentation(property.XmlComment, 1);
-                    WriteProperty(property);
-                }
+                Output.WriteLine();
+                WriteXmlDocumentation(property.XmlComment, 1);
+                WriteProperty(property);
             }
+
+            bool firstLine = classInfo.IsEnum;
 
             // Followed by the definitions of all fields that are to be serialized.
             foreach (var field in classInfo.Fields.Values)
             {
-                // Also skip backing fields.
-                if (!field.Name!.StartsWith('<') && !field.DontSerialize)
+                if (!firstLine)
                 {
                     Output.WriteLine();
-                    WriteXmlDocumentation(field.XmlComment, 1);
-                    WriteField(field);
                 }
+                firstLine = false;
+                WriteField(field);
             }
 
             // We now have the chance to close the class.

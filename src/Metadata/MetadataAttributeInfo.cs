@@ -10,6 +10,11 @@ namespace Z3
         private readonly List<CustomAttributeTypedArgument<string>> fixedArguments = [];
         private readonly Dictionary<string, CustomAttributeNamedArgument<string>> namedArguments = [];
 
+        public MetadataAttributeInfo(string name) : base(null, null)
+        {
+            XmlMemberName = name;
+        }
+
         public MetadataAttributeInfo(CustomAttribute attribute, MetadataReader reader) : base(reader, null)
         {
             try
