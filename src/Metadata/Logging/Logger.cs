@@ -4,6 +4,13 @@ using System.Runtime.CompilerServices;
 
 namespace Z3
 {
+    internal enum VerbosityLevel
+    {
+        Silent,
+        Normal,
+        Debug
+    }
+
     /// <summary>
     /// Simple logger, which for now writes everything to Console.Out.
     /// </summary>
@@ -30,6 +37,15 @@ namespace Z3
             {
                 output.WriteLine($"{callingMethod} - {Path.GetFileName(callingFileName)}.{callingLineNumber}: {message}");
             }
+        }
+
+        public static void LogFatal(string message,
+            [CallerMemberName] string? callingMethod = "",
+            [CallerFilePath] string? callingFileName = "",
+            [CallerLineNumber] int? callingLineNumber = 0)
+        {
+            output.WriteLine($"{callingMethod} - {Path.GetFileName(callingFileName)}.{callingLineNumber}: {message}");
+            Environment.Exit(-1);
         }
 
         public static void SetVerbosity(VerbosityLevel verbosity)

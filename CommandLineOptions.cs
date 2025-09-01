@@ -9,13 +9,6 @@ namespace Z3
         TypeScript
     }
 
-    internal enum VerbosityLevel
-    {
-        Silent,
-        Normal,
-        Debug
-    }
-
     internal interface Options
     {
         public bool AutoFind { get; set; }
