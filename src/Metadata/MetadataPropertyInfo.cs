@@ -38,6 +38,11 @@ namespace Z3
                             ReferencedType = ReferencedType.Substring(0, ReferencedType.Length - 1);
                         }
 
+                        if (DefiningClass.ContainingAssembly.ClassesByName.TryGetValue(Type, out var implementedClass))
+                        {
+                            ImplementedClass = implementedClass;
+                        }
+
                         IsStandardType = BaseFormatter.csStandardTypes.Contains(ReferencedType!);
 
                         // We are going to look for Custom Attributes.
@@ -66,6 +71,11 @@ namespace Z3
         /// The class where this property is defined.
         /// </summary>
         public MetadataClassInfo DefiningClass { get; private set; }
+
+        /// <summary>
+        /// The class which this property is implementing.
+        /// </summary>
+        public MetadataClassInfo? ImplementedClass { get; private set; }
 
         /// <summary>
         /// The full name of the type, like System.Generic.List`1[SomeType].
