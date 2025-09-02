@@ -106,7 +106,9 @@ namespace Z3
         {
             if (string.IsNullOrEmpty(cmdLine!.OutputFolder))
             {
-                Logger.LogMessage($"Output file would be {fileName}");
+                Console.Out.WriteLine();
+                Console.Out.WriteLine($"********** Output file would be {fileName} **********");
+                Console.Out.WriteLine();
                 return Console.Out;
             }
 
