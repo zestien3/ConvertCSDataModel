@@ -49,6 +49,13 @@ namespace Zestien3
     [UseInFrontend(SubFolder = "Demo")]
     public class AllStandardTypes
     {
+        private bool DontIncludeThisOne = false;
+
+        /// <summary>
+        /// Protected field member.
+        /// </summary>
+        protected bool DoIncludeThisOne = false;
+
         /// <summary>
         /// Property of type bool
         /// </summary>

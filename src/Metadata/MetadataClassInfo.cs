@@ -85,7 +85,7 @@ namespace Z3
                     {
                         var propertyInfo = new MetadataPropertyInfo(Reader!.GetPropertyDefinition(propertyHandle), this, Reader, XmlDoc);
                         propertyInfo.AllClassesLoaded(this, depthToLoad - 1);
-                        if (!propertyInfo.DontSerialize)
+                        if (!propertyInfo.DontSerialize && (propertyInfo.Visibility != Visibility.Private))
                         {
                             properties[propertyInfo.Name!] = propertyInfo;
                         }
@@ -96,6 +96,7 @@ namespace Z3
                         var fieldInfo = new MetadataFieldInfo(Reader!.GetFieldDefinition(fieldHandle), this, Reader, XmlDoc);
                         fieldInfo.AllClassesLoaded(this, depthToLoad - 1);
                         if (!fieldInfo.DontSerialize &&
+                            (fieldInfo.Visibility != Visibility.Private) &&
                             !fieldInfo.Attributes.ContainsKey("CompilerGeneratedAttribute") &&
                             !fieldInfo.Attributes.ContainsKey("SpecialNameAttribute"))
                         {

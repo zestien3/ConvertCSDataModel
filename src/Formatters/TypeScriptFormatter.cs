@@ -169,7 +169,7 @@ namespace Z3
         {
             var type = FormatType(propertyInfo);
             WriteIndent(1);
-            Output.Write($"public {ToJSONCase(propertyInfo.Name!)}: {type}{(propertyInfo.IsArray ? "[]" : "")} = ");
+            Output.Write($"{(propertyInfo.Visibility == Visibility.Public ? "public" : "protected")} {ToJSONCase(propertyInfo.Name!)}: {type}{(propertyInfo.IsArray ? "[]" : "")} = ");
             if (propertyInfo.IsArray)
             {
                 Output.WriteLine("[];");
@@ -209,7 +209,7 @@ namespace Z3
 
                 var type = FormatType(fieldInfo);
                 WriteIndent(1);
-                Output.Write($"public {ToJSONCase(fieldInfo.Name!)}: {type}{(fieldInfo.IsArray ? "[]" : "")} = ");
+                Output.Write($"{(fieldInfo.Visibility == Visibility.Public ? "public" : "protected")} {ToJSONCase(fieldInfo.Name!)}: {type}{(fieldInfo.IsArray ? "[]" : "")} = ");
                 if (fieldInfo.Type!.EndsWith("[]"))
                 {
                     Output.WriteLine("[];");

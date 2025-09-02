@@ -1,8 +1,14 @@
 using System.Reflection.Metadata;
-using System.Xml;
 
 namespace Z3
 {
+    internal enum Visibility
+    {
+        Private,
+        Protected,
+        Public
+    }
+
     internal abstract class MetadataInfo
     {
         public MetadataInfo(MetadataReader? reader, XmlDocumentationFile? xmlDoc)
@@ -26,6 +32,7 @@ namespace Z3
 
         protected int LoadedDepth { get; set; }
         public string XmlMemberName { get; protected set; }
+        public Visibility Visibility { get; protected set; }
         protected MetadataReader? Reader { get; set; }
         protected XmlDocumentationFile? XmlDoc { get; set; }
     }
