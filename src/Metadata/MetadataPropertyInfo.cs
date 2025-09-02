@@ -60,6 +60,14 @@ namespace Z3
                             ReferencedType = ReferencedType.Substring(0, ReferencedType.Length - 1);
                         }
 
+                        // If we have a nested class we need to add the namespace of the defining class.
+                        // This will be the class in which the property is defined, which is classInfo.
+                        // Note that Type should also be changed, but we see how far we get without doing that.
+                        if (ReferencedType[0] == '.')
+                        {
+                            ReferencedType = classInfo.FullName + ReferencedType;
+                        }
+
                         if (DefiningClass.ContainingAssembly.ClassesByName.TryGetValue(Type, out var implementedClass))
                         {
                             ImplementedClass = implementedClass;

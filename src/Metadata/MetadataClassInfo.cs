@@ -19,6 +19,13 @@ namespace Z3
             Name = reader.GetString(typeDef.Name);
             Namespace = reader.GetString(typeDef.Namespace);
 
+            if (string.IsNullOrEmpty(Namespace) && assembly.ClassesByHandle.ContainsKey(typeDef.GetDeclaringType()))
+            {
+                Namespace = assembly.ClassesByHandle[typeDef.GetDeclaringType()].FullName;
+            }
+
+            Logger.LogDebug($"Creating clas info for {FullName}");
+
             XmlMemberName = $"T:{FullName}";
 
             // We are going to look for Custom Attributes.

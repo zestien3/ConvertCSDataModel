@@ -124,16 +124,16 @@ namespace Z3
         {
             if (classInfo.IsEnum)
             {
-                Output.Write($"export enum {ToCamelCase(classInfo.Name!)} ");
+                Output.Write($"export enum {classInfo.Name!} ");
             }
             else
             {
-                Output.Write($"export class {ToCamelCase(classInfo.Name!)} ");
+                Output.Write($"export class {classInfo.Name!} ");
             }
 
             if (null != classInfo.BaseType)
             {
-                Output.Write($"extends {ToCamelCase(classInfo.BaseType.Name!)} ");
+                Output.Write($"extends {classInfo.BaseType.Name!} ");
             }
             Output.WriteLine("{");
         }
@@ -143,7 +143,7 @@ namespace Z3
             if (!classInfo.IsEnum)
             {
                 WriteIndent(1);
-                Output.WriteLine($"constructor(other?: {ToCamelCase(classInfo.Name!)}) {{");
+                Output.WriteLine($"constructor(other?: {classInfo.Name!}) {{");
 
                 if (null != classInfo.BaseType)
                 {

@@ -63,16 +63,18 @@ namespace Z3
             if (typeDef.BaseType.IsNil)
                 return;
 
-            // Add any nested classes to the list as well.
-            foreach (var subTypeDefinition in typeDef.GetNestedTypes())
-            {
-                AddTypeToClass(subTypeDefinition);
-            }
-
             var typeInfo = new MetadataClassInfo(this, typeDef, Reader, XmlDoc);
 
             classesByName[typeInfo.FullName] = typeInfo;
             classesByHandle[typeDefHandle] = typeInfo;
+
+            // Add any nested classes to the list as well.
+            // We need to do this after the class itself has been added to the lists,
+            // so we can access it from the nested class.
+            foreach (var subTypeDefinition in typeDef.GetNestedTypes())
+            {
+                AddTypeToClass(subTypeDefinition);
+            }
         }
 
         public IReadOnlyDictionary<string, MetadataClassInfo> ClassesByName
