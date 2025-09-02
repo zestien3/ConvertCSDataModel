@@ -3,10 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using CommandLine;
-using Zestien3;
 
 namespace Z3
 {
@@ -91,11 +88,11 @@ namespace Z3
                         switch (language)
                         {
                             case Language.TypeScript:
-                                {
-                                    using var writer = GetOutput(TypeScriptFormatter.GetFileNameFromClass(classInfo));
-                                    (new TypeScriptFormatter(assemblyInfo, writer)).FormatClass(classInfo);
-                                    break;
-                                }
+                            {
+                                using var writer = GetOutput(TypeScriptFormatter.GetFileNameFromClass(classInfo));
+                                (new TypeScriptFormatter(assemblyInfo, writer)).FormatClass(classInfo);
+                                break;
+                            }
                         }
                     }
                 }

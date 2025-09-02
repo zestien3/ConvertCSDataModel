@@ -153,8 +153,8 @@ namespace Z3
         protected abstract string ToStandardType(int index);
 
         /// <summary>
-        /// Gets the string represengtation of the basic type of the given member.
-        /// It is stripped from the namespace and the
+        /// Gets the string representation of the basic type of the given member.
+        /// It is stripped from the namespace and the possible generic class definition.
         /// </summary>
         /// <param name="memberInfo">The property or field to get the basic type from.</param>
         /// <returns>A string representing the basic type of the property or field.</returns>
