@@ -46,7 +46,7 @@ namespace Z3
                         // The return value of the constructor is void, so we get the declaring type,
                         // which is the attribute class. We remove the namespace.
                         var type = ctorAsMethod.GetDeclaringType().ToTypeString(reader);
-                        Name = type.Substring(type.LastIndexOf('.') + 1);
+                        Name = type[(type.LastIndexOf('.') + 1)..];
 
                         // TODO: We can move this code to the outer scope, as the attribute is defined
                         //       in that scope.

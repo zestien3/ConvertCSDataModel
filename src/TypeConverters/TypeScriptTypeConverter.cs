@@ -57,12 +57,12 @@ namespace Z3
 
             if (IsArray(csType))
             {
-                csType = csType.Substring(0, csType.Length - 2);
+                csType = csType[..^2];
             }
 
             if (IsGeneric(csType))
             {
-                csType = StripGenericType(csType);
+                csType = StripToBareType(csType);
             }
 
             if (IsStandardType(csType))
@@ -71,7 +71,7 @@ namespace Z3
             }
             else
             {
-                result = csType.Substring(csType.LastIndexOf('.') + 1);
+                result = csType[(csType.LastIndexOf('.') + 1)..];
             }
 
             if (isArray)
@@ -89,11 +89,7 @@ namespace Z3
         /// <returns>The given type converted to a filename for TypeScript.</returns>
         public override string GetFileName(string csType)
         {
-            if (IsGeneric(csType))
-            {
-                csType = StripGenericType(csType);
-            }
-
+            csType = ConvertType(csType);
             return ToKebabCase(csType);
         }
 
@@ -104,6 +100,7 @@ namespace Z3
         /// <returns>True if the given C# type is a standard type in TypeScript, false otherwise.</returns>
         public override bool IsStandardType(string csType)
         {
+            csType = StripToBareType(csType);
             var index = BaseTypeConverter.csStandardTypes.IndexOf(csType);
             if (-1 != index)
             {

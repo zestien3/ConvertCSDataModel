@@ -54,9 +54,23 @@ namespace Z3
                         // If we have a nested class we need to add the namespace of the defining class.
                         // This will be the class in which the field is defined, which is classInfo.
                         // Note that Type should also be changed, but we see how far we get without doing that.
-                        if (Type[0] == '.')
+                        if (BaseTypeConverter.StripToBareType(Type)[0] == '.')
                         {
-                            Type = classInfo.FullName + Type;
+                            if (IsGeneric)
+                            {
+                                Type = BaseTypeConverter.GetGenericType(Type) + "`1[" + classInfo.FullName + BaseTypeConverter.StripToBareType(Type) + "]";
+                            }
+                            else
+                            {
+                                if (IsArray)
+                                {
+                                    Type = classInfo.FullName + Type + "[]";
+                                }
+                                else
+                                {
+                                    Type = classInfo.FullName + Type;
+                                }
+                            }
                         }
 
                         if (DefiningClass.ContainingAssembly.ClassesByName.TryGetValue(Type, out var implementedClass))

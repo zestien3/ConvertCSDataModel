@@ -95,16 +95,32 @@ namespace Z3
         /// </summary>
         /// <param name="csType">The complete C# type in string format.</param>
         /// <returns>The C# parameter type of this generic type.</returns>
-        public static string StripGenericType(string csType)
+        public static string StripToBareType(string csType)
         {
+            var result = csType;
             Regex regex = StripGenericTypeRegex();
             if (regex.IsMatch(csType))
             {
-                var result = regex.Matches(csType)[0];
-                return result.Groups[1].Value;
+                result = regex.Matches(csType)[0].Groups[1].Value;
             }
 
-            return csType;
+            // The type can be int?[] and int[]?
+            if (result.EndsWith('?'))
+            {
+                result = result[..^1];
+            }
+
+            if (result.EndsWith("[]"))
+            {
+                result = result[..^2];
+            }
+
+            if (result.EndsWith('?'))
+            {
+                result = result[..^1];
+            }
+
+            return result;
         }
 
         /// <summary>
@@ -223,7 +239,7 @@ namespace Z3
         public static string ToPascalCase(string str)
         {
             var result = ToCamelCase(str);
-            return char.ToLower(result[0]) + result.Substring(1);
+            return char.ToLower(result[0]) + result[1..];
         }
 
         /// <summary>
@@ -266,7 +282,7 @@ namespace Z3
             var result = new List<string>();
             foreach (var s in strings)
             {
-                result.Add(char.ToUpper(s[0]) + s.Substring(1).ToLower());
+                result.Add(char.ToUpper(s[0]) + s[1..].ToLower());
             }
             return result;
         }

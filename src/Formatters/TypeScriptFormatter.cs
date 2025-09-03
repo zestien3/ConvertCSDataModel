@@ -84,7 +84,7 @@ namespace Z3
 
                 subFolder = Path.GetRelativePath(currentSubFolder, subFolder).Replace("\\", "/");
 
-                string shortTypeName = className.Substring(className.LastIndexOf('.') + 1);
+                string shortTypeName = className[(className.LastIndexOf('.') + 1)..];
                 Output.WriteLine($"import {{ {shortTypeName} }} from \"{subFolder}/{fileName}\";");
             }
         }
@@ -150,7 +150,7 @@ namespace Z3
             }
             else
             {
-                if (Converter.IsStandardType(type))
+                if (Converter.IsStandardType(propertyInfo.Type!))
                 {
                     Output.WriteLine($"{TypeScriptTypeConverter.tsStandardTypeValues[BaseTypeConverter.csStandardTypes.IndexOf(propertyInfo.Type!)]};");
                 }
@@ -190,7 +190,7 @@ namespace Z3
                 }
                 else
                 {
-                    if (Converter.IsStandardType(type))
+                    if (Converter.IsStandardType(fieldInfo.Type!))
                     {
                         Output.WriteLine($"{TypeScriptTypeConverter.tsStandardTypeValues[BaseTypeConverter.csStandardTypes.IndexOf(fieldInfo.Type!)]};");
                     }

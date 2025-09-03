@@ -91,12 +91,21 @@ namespace Z3
                             {
                                 using var writer = GetOutput(TypeScriptFormatter.GetFileNameFromClass(classInfo));
                                 (new TypeScriptFormatter(assemblyInfo, writer)).FormatClass(classInfo);
-                                if (cmdLine is DemoOptions)
-                                {
-                                    TypeScriptTypeConverter.DemoSerialization();
-                                }
                                 break;
                             }
+                        }
+                    }
+                }
+
+                if (cmdLine is DemoOptions)
+                {
+                    foreach (var language in cmdLine.Languages!)
+                    {
+                        switch (language)
+                        {
+                            case Language.TypeScript:
+                                TypeScriptTypeConverter.DemoSerialization();
+                                break;
                         }
                     }
                 }

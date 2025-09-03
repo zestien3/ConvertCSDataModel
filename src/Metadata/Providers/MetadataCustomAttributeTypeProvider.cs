@@ -188,7 +188,7 @@ namespace Z3
 
             while ((null == assembly) && assemblyName.Contains('.'))
             {
-                assemblyName = assemblyName.Substring(0, typeName.LastIndexOf('.'));
+                assemblyName = assemblyName[..typeName.LastIndexOf('.')];
                 assembly = AssemblyResolver(new AssemblyName(assemblyName));
             }
 

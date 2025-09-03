@@ -58,18 +58,17 @@ namespace Z3
             WriteFileHeader(classInfo);
 
             // If we need to reference a file for externally defined classes, this can be done here.
-            // The first one is for the baseclass of the class we are processing.
+            // The first one is for the base-class of the class we are processing.
             // Interfaces are not yet supported. 
             if (null != classInfo.BaseType)
             {
-                var baseType = classInfo.BaseType.Name!;
+                var baseType = BaseTypeConverter.StripToBareType(classInfo.BaseType.FullName!);
                 if (!Converter.IsStandardType(baseType))
                 {
-                    baseType = Converter.ConvertType(baseType);
                     if (!ReferencedFiles.Contains(baseType))
                     {
                         ReferencedFiles.Add(baseType);
-                        WriteFileReference(baseType, Converter.GetFileName(classInfo.BaseType.Name!), classInfo.SubFolder);
+                        WriteFileReference(baseType, Converter.GetFileName(baseType), classInfo.SubFolder);
                     }
                 }
             }
@@ -77,22 +76,28 @@ namespace Z3
             // Here we write the references to the files for the defined properties.
             foreach (var property in classInfo.Properties.Values)
             {
-                var type = Converter.ConvertType(property.Type!);
-                if (!ReferencedFiles.Contains(type) && !Converter.IsStandardType(type))
+                if (classInfo.FullName != property.Type!)
                 {
-                    ReferencedFiles.Add(type);
-                    WriteFileReference(type, Converter.GetFileName(property.Type!), property.DefiningClass.SubFolder);
+                    var type = BaseTypeConverter.StripToBareType(property.Type!);
+                    if (!ReferencedFiles.Contains(type) && !Converter.IsStandardType(type))
+                    {
+                        ReferencedFiles.Add(type);
+                        WriteFileReference(type, Converter.GetFileName(type), property.DefiningClass.SubFolder);
+                    }
                 }
             }
 
             // Here we write the references to the files for the defined fields.
             foreach (var field in classInfo.Fields.Values)
             {
-                var type = Converter.ConvertType(field.Type!);
-                if (!ReferencedFiles.Contains(type) && !Converter.IsStandardType(type))
+                if (classInfo.FullName != field.Type!)
                 {
-                    ReferencedFiles.Add(type);
-                    WriteFileReference(type, Converter.GetFileName(field.Type!), field.DefiningClass.SubFolder);
+                    var type = BaseTypeConverter.StripToBareType(field.Type!);
+                    if (!ReferencedFiles.Contains(type) && !Converter.IsStandardType(type))
+                    {
+                        ReferencedFiles.Add(type);
+                        WriteFileReference(type, Converter.GetFileName(type), field.DefiningClass.SubFolder);
+                    }
                 }
             }
 

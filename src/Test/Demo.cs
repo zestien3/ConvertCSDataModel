@@ -187,7 +187,7 @@ namespace Zestien3
     /// This class contains private and protected member fields and properties.
     /// </remarks>
     [UseInFrontend(SubFolder = "Demo")]
-    public class VariousMeberVisibilities
+    public class VariousMemberVisibilities
     {
         private int ThisShouldNotBeSerialized;
 
@@ -211,7 +211,7 @@ namespace Zestien3
     /// This class contains properties with different case formatting.
     /// </remarks>
     [UseInFrontend(SubFolder = "Demo")]
-    public class VariousMemberNameCasings
+    public class VariousMemberNameCasings : VariousMemberVisibilities
     {
         /// <summary>
         /// CamelCasing
