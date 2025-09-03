@@ -5,7 +5,7 @@ using System.Reflection.Metadata;
 
 namespace Z3
 {
-    internal class MetadataPropertyInfo : MetadataInfo, IMemberInfo
+    internal class MetadataPropertyInfo : MetadataInfo
     {
         private PropertyDefinition propertyDef;
 
@@ -51,29 +51,23 @@ namespace Z3
                     {
                         var signature = propertyDef.DecodeSignature<string, MetadataInfo>(MetadataSignatureTypeProvider.Instance, this);
                         // TODO: For now we use this 'hack'
-                        //       We should create a class that converts C# types to TS types.
-                        Type = ReferencedType = signature.ReturnType;
-                        IsArray = ReferencedType.Contains("`1[");
-                        if (IsArray)
-                        {
-                            ReferencedType = ReferencedType.Substring(ReferencedType.IndexOf("`1[") + 3);
-                            ReferencedType = ReferencedType.Substring(0, ReferencedType.Length - 1);
-                        }
+                        //       We should extend the TypeScriptFormatter class to convert C# types to TS types.
+                        Type = signature.ReturnType;
+                        IsGeneric = BaseTypeConverter.IsGeneric(Type);
+                        IsArray = BaseTypeConverter.IsArray(Type);
 
                         // If we have a nested class we need to add the namespace of the defining class.
                         // This will be the class in which the property is defined, which is classInfo.
                         // Note that Type should also be changed, but we see how far we get without doing that.
-                        if (ReferencedType[0] == '.')
+                        if (Type[0] == '.')
                         {
-                            ReferencedType = classInfo.FullName + ReferencedType;
+                            Type = classInfo.FullName + Type;
                         }
 
                         if (DefiningClass.ContainingAssembly.ClassesByName.TryGetValue(Type, out var implementedClass))
                         {
                             ImplementedClass = implementedClass;
                         }
-
-                        IsStandardType = BaseFormatter.csStandardTypes.Contains(ReferencedType!);
 
                         // We are going to look for Custom Attributes.
                         // For now we are only interested in JsonIgnoreAttribute.
@@ -113,20 +107,14 @@ namespace Z3
         public string? Type { get; private set; }
 
         /// <summary>
-        /// The base type which is referenced.
-        /// So if the full type is System.Generic.List`1[SomeType], this would be SomeType.
-        /// </summary>
-        public string? ReferencedType { get; private set; }
-
-        /// <summary>
-        /// Indicates if this ia a C# standard type like int32, string or object.
-        /// </summary>
-        public bool IsStandardType { get; private set; }
-
-        /// <summary>
         /// Indicates if this is an array or a list.
         /// </summary>
         public bool IsArray { get; private set; }
+
+        /// <summary>
+        /// Indicates if this is a generic type.
+        /// </summary>
+        public bool IsGeneric { get; private set; }
 
         /// <summary>
         /// Indicates if this property should be serialized or not.

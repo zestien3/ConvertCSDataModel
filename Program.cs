@@ -91,6 +91,10 @@ namespace Z3
                             {
                                 using var writer = GetOutput(TypeScriptFormatter.GetFileNameFromClass(classInfo));
                                 (new TypeScriptFormatter(assemblyInfo, writer)).FormatClass(classInfo);
+                                if (cmdLine is DemoOptions)
+                                {
+                                    TypeScriptTypeConverter.DemoSerialization();
+                                }
                                 break;
                             }
                         }

@@ -49,13 +49,6 @@ namespace Zestien3
     [UseInFrontend(SubFolder = "Demo")]
     public class AllStandardTypes
     {
-        private bool DontIncludeThisOne = false;
-
-        /// <summary>
-        /// Protected field member.
-        /// </summary>
-        protected bool DoIncludeThisOne = false;
-
         /// <summary>
         /// Property of type bool
         /// </summary>
@@ -107,17 +100,17 @@ namespace Zestien3
         public UInt64 UInt64Property { get; set; }
 
         /// <summary>
-        /// Property of type Single
+        /// Property of type float
         /// </summary>
-        public Single SingleProperty { get; set; }
+        public float FloatProperty { get; set; }
 
         /// <summary>
-        /// Property of type Double
+        /// Property of type double
         /// </summary>
-        public Double DoubleProperty { get; set; }
+        public double DoubleProperty { get; set; }
 
         /// <summary>
-        /// Property of type String
+        /// Property of type string
         /// </summary>
         public string StringProperty { get; set; } = string.Empty;
 
@@ -155,5 +148,109 @@ namespace Zestien3
         /// Property of type EnumDemo
         /// </summary>
         public EnumDemo EnumProperty { get; set; }
+    }
+
+    /// <summary>
+    /// Class for the demo of this application.
+    /// </summary>
+    /// <remarks>
+    /// It contains various array types.
+    /// </remarks>
+    [UseInFrontend(SubFolder = "Demo")]
+    public class ArrayTypes
+    {
+        /// <summary>
+        /// Boolean list.
+        /// </summary>
+        public List<bool> BooleanList { get; set; } = [];
+
+        /// <summary>
+        /// Single list.
+        /// </summary>
+        public IList<float> SingleList { get; set; } = [];
+
+        /// <summary>
+        /// Double list.
+        /// </summary>
+        public IReadOnlyList<double> DoubleList { get; set; } = [];
+
+        /// <summary>
+        /// Integer array.
+        /// </summary>
+        public int[] IntegerArray { get; set; } = [];
+    }
+
+    /// <summary>
+    /// Class for the demo of this application.
+    /// </summary>
+    /// <remarks>
+    /// This class contains private and protected member fields and properties.
+    /// </remarks>
+    [UseInFrontend(SubFolder = "Demo")]
+    public class VariousMeberVisibilities
+    {
+        private int ThisShouldNotBeSerialized;
+
+        private int ThisShouldAlsoNotBeSerialized { get; set; }
+
+        /// <summary>
+        /// This is a protected member field and should be serialized.
+        /// </summary>
+        protected int ThisShouldBeSerialized;
+
+        /// <summary>
+        /// This is a protected property and should be serialized.
+        /// </summary>
+        protected int ThisShouldAlsoBeSerialized { get; set; }
+    }
+
+    /// <summary>
+    /// Class for the demo of this application.
+    /// </summary>
+    /// <remarks>
+    /// This class contains properties with different case formatting.
+    /// </remarks>
+    [UseInFrontend(SubFolder = "Demo")]
+    public class VariousMemberNameCasings
+    {
+        /// <summary>
+        /// CamelCasing
+        /// </summary>
+        public int CamelCase { get; set; }
+
+        /// <summary>
+        /// pascalCasing
+        /// </summary>
+        public int pascalCase { get; set; }
+
+        /// <summary>
+        /// snakeCasing
+        /// </summary>
+        public int snake_case { get; set; }
+
+        /// <summary>
+        /// ALLUPPERCASE
+        /// </summary>
+        public int ALLUPPERCASE { get; set; }
+
+        /// <summary>
+        /// MULTIPLEUpperCaseAtBegin
+        /// </summary>
+        public int MULTIPLEUpperCaseAtBegin { get; set; }
+
+        /// <summary>
+        /// MultiplUPPERCASEIntheMiddle
+        /// </summary>
+        public int MultiplUPPERCASEIntheMiddle { get; set; }
+
+        /// <summary>
+        /// MultipleUpperCaseAtEND
+        /// </summary>
+        public int MultipleUpperCaseAtEND { get; set; }
+
+        /// <summary>
+        /// sOMEUpperCaseAfterTheFirstCharacter
+        /// </summary>
+        public int sOMEUpperCaseAfterTheFirstCharacter { get; set; }
     }
 }

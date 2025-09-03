@@ -1,27 +1,11 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
-using Zestien3;
 
 namespace Z3
 {
     internal class TypeScriptFormatter : BaseFormatter
     {
-        private static readonly List<string> tsStandardTypes = new() { "void", "boolean", "number", "number", "number",
-                                                                       "number", "number", "number", "number",
-                                                                       "number", "number", "number", "number",
-                                                                       "string", "<TYPEDREFERENCE>", "<INTPTR>", "<UINTPTR>",
-                                                                       "unknown", "Date", "Date", "string",
-                                                                       "Enum" };
-
-        private static readonly List<string> tsStandardTypeValues = new() { "null", "false", "0", "0", "0",
-                                                                            "0", "0", "0", "0",
-                                                                            "0", "0", "0", "0",
-                                                                            "\"\"", "<TYPEDREFERENCE>", "<INTPTR>", "<UINTPTR>",
-                                                                            "undefined", "new Date()", "new Date()", "\"00000000-0000-0000-0000-000000000000\"",
-                                                                            "0" };
-
         /// <summary>
         /// Return the file name to store the TypeScript representation of the given MetadataClassInfo.
         /// </summary>
@@ -32,7 +16,7 @@ namespace Z3
         /// <returns>The file name to store the TypeScript representation of the given MetadataClassInfo.</returns>
         public static string GetFileNameFromClass(MetadataClassInfo classInfo)
         {
-            return Path.Combine(classInfo.SubFolder, $"{ToKebabCase(classInfo.Name!)}.ts");
+            return Path.Combine(classInfo.SubFolder, $"{BaseTypeConverter.ToKebabCase(classInfo.Name!)}.ts");
         }
 
         /// <summary>
@@ -40,18 +24,8 @@ namespace Z3
         /// </summary>
         /// <param name="assemblyInfo">The assembly for which we create the output.</param>
         /// <param name="output">The output to which the type script code must be written.</param>
-        public TypeScriptFormatter(MetadataAssemblyInfo assemblyInfo, TextWriter output) : base(assemblyInfo, output)
+        public TypeScriptFormatter(MetadataAssemblyInfo assemblyInfo, TextWriter output) : base(assemblyInfo, output, new TypeScriptTypeConverter())
         {
-            if (tsStandardTypes.Count != csStandardTypes.Count)
-            {
-                Logger.LogFatal($"The {nameof(TypeScriptFormatter)}.{nameof(tsStandardTypes)} array does not contain the correct number of entries.");
-            }
-
-            if (tsStandardTypeValues.Count != csStandardTypes.Count)
-            {
-                Logger.LogFatal($"The {nameof(TypeScriptFormatter)}.{nameof(tsStandardTypeValues)} array does not contain the correct number of entries.");
-            }
-
             IndentLength = 2;
         }
 
@@ -102,7 +76,7 @@ namespace Z3
             // TypeScript does not have a file header.
         }
 
-        protected override void WriteFileReference(string className, string currentSubFolder)
+        protected override void WriteFileReference(string className, string fileName, string currentSubFolder)
         {
             if (AssemblyInfo.ClassesByName.TryGetValue(className, out var classInfo))
             {
@@ -111,7 +85,7 @@ namespace Z3
                 subFolder = Path.GetRelativePath(currentSubFolder, subFolder).Replace("\\", "/");
 
                 string shortTypeName = className.Substring(className.LastIndexOf('.') + 1);
-                Output.WriteLine($"import {{ {shortTypeName} }} from \"{subFolder}/{ToKebabCase(shortTypeName)}\";");
+                Output.WriteLine($"import {{ {shortTypeName} }} from \"{subFolder}/{fileName}\";");
             }
         }
 
@@ -156,7 +130,7 @@ namespace Z3
                 foreach (var property in classInfo.Properties.Values)
                 {
                     WriteIndent(3);
-                    Output.WriteLine($"this.{ToJSONCase(property.Name!)} = other.{ToJSONCase(property.Name!)};");
+                    Output.WriteLine($"this.{BaseTypeConverter.ToJSONCase(property.Name!)} = other.{BaseTypeConverter.ToJSONCase(property.Name!)};");
                 }
                 WriteIndent(2);
                 Output.WriteLine("}");
@@ -167,18 +141,18 @@ namespace Z3
 
         protected override void WriteProperty(MetadataPropertyInfo propertyInfo)
         {
-            var type = FormatType(propertyInfo);
+            var type = Converter.ConvertType(propertyInfo.Type!);
             WriteIndent(1);
-            Output.Write($"{(propertyInfo.Visibility == Visibility.Public ? "public" : "protected")} {ToJSONCase(propertyInfo.Name!)}: {type}{(propertyInfo.IsArray ? "[]" : "")} = ");
-            if (propertyInfo.IsArray)
+            Output.Write($"{(propertyInfo.Visibility == Visibility.Public ? "public" : "protected")} {BaseTypeConverter.ToJSONCase(propertyInfo.Name!)}: {type} = ");
+            if (type.EndsWith("[]"))
             {
                 Output.WriteLine("[];");
             }
             else
             {
-                if (propertyInfo.IsStandardType)
+                if (Converter.IsStandardType(type))
                 {
-                    Output.WriteLine($"{tsStandardTypeValues[BaseFormatter.csStandardTypes.IndexOf(propertyInfo.Type!)]};");
+                    Output.WriteLine($"{TypeScriptTypeConverter.tsStandardTypeValues[BaseTypeConverter.csStandardTypes.IndexOf(propertyInfo.Type!)]};");
                 }
                 else
                 {
@@ -207,18 +181,18 @@ namespace Z3
             {
                 WriteXmlDocumentation(fieldInfo.XmlComment, 1);
 
-                var type = FormatType(fieldInfo);
+                var type = Converter.ConvertType(fieldInfo.Type!);
                 WriteIndent(1);
-                Output.Write($"{(fieldInfo.Visibility == Visibility.Public ? "public" : "protected")} {ToJSONCase(fieldInfo.Name!)}: {type}{(fieldInfo.IsArray ? "[]" : "")} = ");
+                Output.Write($"{(fieldInfo.Visibility == Visibility.Public ? "public" : "protected")} {BaseTypeConverter.ToJSONCase(fieldInfo.Name!)}: {type}{(fieldInfo.IsArray ? "[]" : "")} = ");
                 if (fieldInfo.Type!.EndsWith("[]"))
                 {
                     Output.WriteLine("[];");
                 }
                 else
                 {
-                    if (fieldInfo.IsStandardType)
+                    if (Converter.IsStandardType(type))
                     {
-                        Output.WriteLine($"{tsStandardTypeValues[BaseFormatter.csStandardTypes.IndexOf(fieldInfo.Type!)]};");
+                        Output.WriteLine($"{TypeScriptTypeConverter.tsStandardTypeValues[BaseTypeConverter.csStandardTypes.IndexOf(fieldInfo.Type!)]};");
                     }
                     else
                     {
@@ -243,11 +217,6 @@ namespace Z3
         protected override void CloseNamespace(MetadataClassInfo classInfo)
         {
             // TypeScript does not support namespaces
-        }
-
-        protected override string ToStandardType(int index)
-        {
-            return TypeScriptFormatter.tsStandardTypes[index];
         }
     }
 }
