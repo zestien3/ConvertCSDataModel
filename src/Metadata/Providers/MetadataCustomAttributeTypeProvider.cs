@@ -1,6 +1,11 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+// TODO: This implementation of the ICustomAttributeTypeProvider interface
+//       returns a string. I assume that it can also be used to return a 
+//       MetadataAttributeInfo instance as well, which would make the code
+//       using it much easier to read.
+
 using System;
 using System.IO;
 using System.Linq;
@@ -10,6 +15,7 @@ using System.Runtime.InteropServices;
  
 namespace Z3
 {
+
     /// <summary>
     /// This Type Provider converts types to strings.
     /// The idea is to create a provider which will generate
@@ -54,64 +60,145 @@ namespace Z3
 
         public static readonly MetadataCustomAttributeTypeProvider Instance = new MetadataCustomAttributeTypeProvider();
 
+        /// <summary>
+        /// Prevent to create a new instance of this class,
+        /// as we want to implement the singleton pattern.
+        /// </summary>
         private MetadataCustomAttributeTypeProvider() { }
 
+        /// <summary>
+        /// Gets the TType representation for System.Type.
+        /// </summary>
+        /// <remarks>
+        /// In our case TType is a string, as this class implements
+        /// the ICustomAttributeTypeProvider&lt;string&gt; interface. 
+        /// <remarks>
         public string GetSystemType()
         {
             return "System.Type";
         }
 
-        public string GetSZArrayType(string elementType)
-        {
-            return $"{elementType}[]";
-        }
+        /// <summary>
+        /// Gets the type symbol for a single-dimensional array of
+        /// the given element type with a lower bounds of zero.
+        /// </summary>
+        /// <remarks>
+        /// In our case TType is a string, as this class implements
+        /// the ICustomAttributeTypeProvider&lt;string&gt; interface. 
+        /// <remarks>
+        public string GetSZArrayType(string elementType) { return $"{elementType}[]"; }
 
+        // TODO: To make this class return a MetadataAttributeInfo instance,
+        //       we probably need to change the next 3 methods.
+        //       Instead of a string, they can return something more useful. 
         public string GetTypeFromDefinition(MetadataReader reader, TypeDefinitionHandle handle, byte rawTypeKind) => handle.ToTypeString(reader);
 
         public string GetTypeFromReference(MetadataReader reader, TypeReferenceHandle handle, byte rawTypeKind) => handle.ToTypeString(reader);
 
-        public string GetTypeFromSerializedName(string name)
-        {
-            return name;
-        }
 
+        /// <summary>
+        /// Gets the type symbol for the given serialized type name.
+        /// </summary>
+        /// <param name="name">
+        /// The serialized type name in so-called "reflection notation" format
+        /// (as understood by the System.Type.GetType(System.String) method.)
+        /// </param>
+        /// <returns>
+        /// In our case a string, as this class implements the
+        /// ICustomAttributeTypeProvider&lt;string&gt; interface.
+        /// But we maybe could return a TypeSCript representation
+        /// of the class.
+        /// </returns>
+        public string GetTypeFromSerializedName(string name) { return name; }
+
+        /// <summary>
+        /// Gets the underlying type of the given enum type symbol.
+        /// </summary>
+        /// <param name="type">An enum type.</param>
+        /// <returns>
+        /// A type code that indicates the underlying type of the enumeration.
+        /// </returns>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
         public PrimitiveTypeCode GetUnderlyingEnumType(string type)
         {
+            // TODO: There are a handful of enums that we can't find.
+            //       Just urn the code and check them. Might not be
+            //       to hard to return the correct code for them.
+
+            // Type.GetType can find types in the current executing assembly and
+            // mscorlib.dll/System.Private.CoreLib.dll.
+            var t = Type.GetType(type, false);
+            if ((null != t) && (null != t.BaseType))
+            {
+                if (t.BaseType.FullName == typeof(SByte).FullName)
+                    return PrimitiveTypeCode.SByte;
+
+                if (t.BaseType.FullName == typeof(Int16).FullName)
+                    return PrimitiveTypeCode.Int16;
+
+                if (t.BaseType.FullName == typeof(Int32).FullName)
+                    return PrimitiveTypeCode.Int32;
+
+                if (t.BaseType.FullName == typeof(Int64).FullName)
+                    return PrimitiveTypeCode.Int64;
+
+                if (t.BaseType.FullName == typeof(Byte).FullName)
+                    return PrimitiveTypeCode.Byte;
+
+                if (t.BaseType.FullName == typeof(UInt16).FullName)
+                    return PrimitiveTypeCode.UInt16;
+
+                if (t.BaseType.FullName == typeof(UInt32).FullName)
+                    return PrimitiveTypeCode.UInt32;
+
+                if (t.BaseType.FullName == typeof(UInt64).FullName)
+                    return PrimitiveTypeCode.UInt64;
+            }
+
             MetadataClassInfo? runtimeType = TypeResolver(type.Replace('/', '+'));
 
             // Default underlying value for Enum is int, so we try that if we  can't
             // find the type. Will work in most cases. The alternative is to throw an
             // exception, which will probably happen anyway if we get it wrong here.
-            if (null == runtimeType)
+            if ((null == runtimeType) || (null == runtimeType!.BaseType))
                 return PrimitiveTypeCode.Int32;
 
-            if (runtimeType?.BaseType?.FullName == typeof(SByte).FullName)
+            if (runtimeType.BaseType.FullName == typeof(SByte).FullName)
                 return PrimitiveTypeCode.SByte;
 
-            if (runtimeType?.BaseType?.FullName == typeof(Int16).FullName)
+            if (runtimeType.BaseType.FullName == typeof(Int16).FullName)
                 return PrimitiveTypeCode.Int16;
 
-            if (runtimeType?.BaseType?.FullName == typeof(Int32).FullName)
+            if (runtimeType.BaseType.FullName == typeof(Int32).FullName)
                 return PrimitiveTypeCode.Int32;
 
-            if (runtimeType?.BaseType?.FullName == typeof(Int64).FullName)
+            if (runtimeType.BaseType.FullName == typeof(Int64).FullName)
                 return PrimitiveTypeCode.Int64;
 
-            if (runtimeType?.BaseType?.FullName == typeof(Byte).FullName)
+            if (runtimeType.BaseType.FullName == typeof(Byte).FullName)
                 return PrimitiveTypeCode.Byte;
 
-            if (runtimeType?.BaseType?.FullName == typeof(UInt16).FullName)
+            if (runtimeType.BaseType.FullName == typeof(UInt16).FullName)
                 return PrimitiveTypeCode.UInt16;
 
-            if (runtimeType?.BaseType?.FullName == typeof(UInt32).FullName)
+            if (runtimeType.BaseType.FullName == typeof(UInt32).FullName)
                 return PrimitiveTypeCode.UInt32;
 
-            if (runtimeType?.BaseType?.FullName == typeof(UInt64).FullName)
+            if (runtimeType.BaseType.FullName == typeof(UInt64).FullName)
                 return PrimitiveTypeCode.UInt64;
 
             throw new ArgumentOutOfRangeException();
         }
 
+        /// <summary>
+        /// Verifies if the given type represents System.Type.
+        /// </summary>
+        /// <remarks>
+        /// The parameter is a string because we implement the
+        /// ICustomAttributeTypeProvider&lt;string&gt; interface.
+        /// </remarks>
+        /// <param name="type">The type to verify.</param>
+        /// <returns>true if the given type is a System.Type, false otherwise.</returns>
         public bool IsSystemType(string type)
         {
             return type == "System.Type";

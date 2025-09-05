@@ -305,29 +305,51 @@ namespace Zestien3
     /// <remarks>
     /// This class contains nullable properties.
     /// </remarks>
-    [UseInFrontend(SubFolder = "Demo", Constructor = TSConstructorType.Copy)]
+    [UseInFrontend(SubFolder = "Demo")]
     public class VariousNullableProperties
     {
+#nullable enable
         /// <summary>
-        /// Nullable property from a type defined in the same assembly.
+        /// Nullable class property in a nullable enabled context is nullable.
         /// </summary>
-        public VariousMemberVisibilities? MemberVisibilities { get; set; } = new();
+        public VariousMemberVisibilities? NullableClass { get; set; } = null;
 
         /// <summary>
-        /// Nullable string property.
+        /// Non nullable class property in a nullable enabled context is not nullable.
         /// </summary>
-        public string? NullableString { get; set; }
+        public VariousMemberVisibilities NotNullableClass { get; set; } = new();
 
         /// <summary>
-        /// Non nullable string property.
+        /// Nullable string property in a nullable enabled context is nullable.
+        /// </summary>
+        public string? NullableString { get; set; } = null;
+
+        /// <summary>
+        /// Non nullable string property in a nullable enabled context is not nullable.
         /// </summary>
         public string NonNullableString { get; set; } = string.Empty;
 
+        /// <summary>
+        /// Non nullable int property in a nullable enabled context is not nullable.
+        /// </summary>
+        public int NonNullableInt { get; set; } = 0;
+#nullable restore
+
 #nullable disable
+        /// <summary>
+        /// Class property in a nullable disabled context is nullable.
+        /// </summary>
+        public VariousMemberVisibilities NullableClassInNullableDisabledContext { get; set; } = null;
+
         /// <summary>
         /// String property in a nullable disabled context is nullable.
         /// </summary>
-        public string NonNullableStringInNullableDisabledContext { get; set; } = null;
+        public string NullableStringInNullableDisabledContext { get; set; } = null;
+
+        /// <summary>
+        /// Int property in a nullable disabled context is not nullable.
+        /// </summary>
+        public int NonNullableIntInNullableDisabledContext { get; set; } = 0;
 #nullable restore
     }
 }

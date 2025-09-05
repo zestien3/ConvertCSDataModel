@@ -113,7 +113,7 @@ namespace Z3
 
         public override void AllClassesLoaded(MetadataInfo? metadataInfo, int depthToLoad)
         {
-            if (depthToLoad > LoadedDepth)
+            if ((depthToLoad > LoadedDepth) && (LoadedDepth == 0))
             {
                 if (metadataInfo is MetadataAssemblyInfo assemblyInfo)
                 {
@@ -149,33 +149,35 @@ namespace Z3
                     throw new ArgumentException($"Parameter {nameof(metadataInfo)} must be of type {nameof(MetadataAssemblyInfo)}");
                 }
 
-                if (depthToLoad >= LoadedDepth + 1)
-                {
-                    foreach (var propertyHandle in typeDef.GetProperties())
-                    {
-                        var propertyInfo = new MetadataPropertyInfo(Reader!.GetPropertyDefinition(propertyHandle), this, Reader, XmlDoc);
-                        propertyInfo.AllClassesLoaded(this, depthToLoad - 1);
-                        if (!propertyInfo.DontSerialize && (propertyInfo.Visibility != Visibility.Private))
-                        {
-                            properties[propertyInfo.Name!] = propertyInfo;
-                        }
-                    }
+                LoadedDepth++;
+            }
 
-                    foreach (var fieldHandle in typeDef.GetFields())
+            if ((depthToLoad > LoadedDepth) && (LoadedDepth == 1))
+            {
+                foreach (var propertyHandle in typeDef.GetProperties())
+                {
+                    var propertyInfo = new MetadataPropertyInfo(Reader!.GetPropertyDefinition(propertyHandle), this, Reader, XmlDoc);
+                    propertyInfo.AllClassesLoaded(this, 1);
+                    if (!propertyInfo.DontSerialize && (propertyInfo.Visibility != Visibility.Private))
                     {
-                        var fieldInfo = new MetadataFieldInfo(Reader!.GetFieldDefinition(fieldHandle), this, Reader, XmlDoc);
-                        fieldInfo.AllClassesLoaded(this, depthToLoad - 1);
-                        if (!fieldInfo.DontSerialize &&
-                            (fieldInfo.Visibility != Visibility.Private) &&
-                            !fieldInfo.Attributes.ContainsKey("CompilerGeneratedAttribute") &&
-                            !fieldInfo.Attributes.ContainsKey("SpecialNameAttribute"))
-                        {
-                            fields[fieldInfo.Name!] = fieldInfo;
-                        }
+                        properties[propertyInfo.Name!] = propertyInfo;
                     }
                 }
 
-                LoadedDepth = depthToLoad;
+                foreach (var fieldHandle in typeDef.GetFields())
+                {
+                    var fieldInfo = new MetadataFieldInfo(Reader!.GetFieldDefinition(fieldHandle), this, Reader, XmlDoc);
+                    fieldInfo.AllClassesLoaded(this, 1);
+                    if (!fieldInfo.DontSerialize &&
+                        (fieldInfo.Visibility != Visibility.Private) &&
+                        !fieldInfo.Attributes.ContainsKey("CompilerGeneratedAttribute") &&
+                        !fieldInfo.Attributes.ContainsKey("SpecialNameAttribute"))
+                    {
+                        fields[fieldInfo.Name!] = fieldInfo;
+                    }
+                }
+
+                LoadedDepth++;
             }
         }
 
@@ -216,6 +218,7 @@ namespace Z3
         {
             // This class is not read using the metadata reflection framework,
             // so there is no need to do anything here.
+            LoadedDepth = depthToLoad;
         }
     }
 }

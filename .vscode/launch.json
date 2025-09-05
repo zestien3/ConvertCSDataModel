@@ -10,6 +10,8 @@
         "-a",
         "-f",
         "D:/Data/Git/TimeTracker/BackEnd/bin/Debug/net8.0/TimeTracker.dll",
+        "-o",
+        "D:/Data/Git/TimeTracker/FrontEnd/src/app/data",
         "-l",
         "TypeScript"
       ],
@@ -26,6 +28,8 @@
       "args": [
         "demo",
         "-a",
+        "-c",
+        "Zestien3.VariousNullableProperties",
         "-v",
         "Silent"
       ],

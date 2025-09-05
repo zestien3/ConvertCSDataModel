@@ -15,12 +15,12 @@ namespace Z3
         private Dictionary<string, MetadataClassInfo> classesByName = new();
         private Dictionary<TypeDefinitionHandle, MetadataClassInfo> classesByHandle = new();
 
-        public static MetadataAssemblyInfo Factory(string assemblyName, int depthToLoad = 1)
+        public static MetadataAssemblyInfo Factory(string assemblyName)
         {
             if (!allLoadedAssemblies.ContainsKey(assemblyName))
             {
                 allLoadedAssemblies[assemblyName] = null;
-                allLoadedAssemblies[assemblyName] = new MetadataAssemblyInfo(assemblyName, depthToLoad);
+                allLoadedAssemblies[assemblyName] = new MetadataAssemblyInfo(assemblyName, 1);
             }
             else
             {
@@ -107,17 +107,19 @@ namespace Z3
 
         public override void AllClassesLoaded(MetadataInfo? metadataInfo, int depthToLoad)
         {
-            if (depthToLoad > LoadedDepth)
+            while (depthToLoad > LoadedDepth)
             {
-                LoadedDepth = depthToLoad;
+                LoadedDepth++;
+
                 // Now all classes are loaded, we give all classes
                 // the chance to get a link to the classes they reference.
                 foreach (var classInfo in classesByHandle.Values)
                 {
-                    classInfo.AllClassesLoaded(this, depthToLoad - 1);
+                    classInfo.AllClassesLoaded(this, LoadedDepth);
                 }
             }
         }
+
         public static IReadOnlyDictionary<string, MetadataAssemblyInfo?> AllLoadedAssemblies => allLoadedAssemblies.AsReadOnly();
     }
 }

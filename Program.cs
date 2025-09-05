@@ -44,11 +44,22 @@ namespace Z3
                     Console.Out.WriteLine(reader.ReadToEnd());
 
                     options.Languages = [Language.TypeScript];
+
+                    if (0 == options.ClassNames!.Count())
+                    {
+                        options.AutoFind = true;
+                    }
+
                     return (Options?)options;
                 },
                 (DefaultOptions options) =>
                 {
                     Logger.SetVerbosity(options.Verbosity);
+
+                    if (0 == options.ClassNames!.Count())
+                    {
+                        options.AutoFind = true;
+                    }
                     return (Options?)options;
                 },
                 _ => { return null; }
@@ -56,7 +67,7 @@ namespace Z3
 
             if (null != cmdLine)
             {
-                List<string> classNames = [.. cmdLine.ClassNames!];
+                List<string> classNames = [..cmdLine.ClassNames!];
 
                 Logger.LogMessage($"Opening assembly {cmdLine.AssemblyName!}");
                 assemblyInfo = MetadataAssemblyInfo.Factory(cmdLine.AssemblyName!);
@@ -79,21 +90,35 @@ namespace Z3
                 {
                     Logger.LogMessage($"Processing class {className}");
 
-                    var classInfo = assemblyInfo!.ClassesByName[className];
-
-                    // For this class we do load more information.
-                    classInfo.AllClassesLoaded(assemblyInfo, 2);
-                    foreach (var language in cmdLine.Languages!)
+                    if (assemblyInfo!.ClassesByName.TryGetValue(className, out var classInfo))
                     {
-                        switch (language)
+                        // For this class we do load more information.
+                        classInfo.AllClassesLoaded(assemblyInfo, 2);
+                        foreach (var language in cmdLine.Languages!)
                         {
-                            case Language.TypeScript:
+                            switch (language)
                             {
-                                using var writer = GetOutput(TypeScriptFormatter.GetFileNameFromClass(classInfo));
-                                (new TypeScriptFormatter(assemblyInfo, writer)).FormatClass(classInfo);
-                                break;
+                                case Language.TypeScript:
+                                {
+                                    var fileName = TypeScriptFormatter.GetFileNameFromClass(classInfo);
+                                    if (!string.IsNullOrEmpty(cmdLine.OutputFolder))
+                                    {
+                                        var dir = Path.GetDirectoryName(Path.Combine(cmdLine.OutputFolder, fileName));
+                                        if (!Directory.Exists(dir!))
+                                        {
+                                            Directory.CreateDirectory(dir!);
+                                        }
+                                    }
+                                    using var writer = GetOutput(fileName);
+                                    (new TypeScriptFormatter(assemblyInfo, writer)).FormatClass(classInfo);
+                                    break;
+                                }
                             }
                         }
+                    }
+                    else
+                    {
+                        Logger.LogMessage($"Could not find class {className}. Did you include the full namespace?");
                     }
                 }
 

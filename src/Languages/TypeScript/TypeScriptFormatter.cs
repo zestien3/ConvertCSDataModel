@@ -17,7 +17,9 @@ namespace Z3
         /// <returns>The file name to store the TypeScript representation of the given MetadataClassInfo.</returns>
         public static string GetFileNameFromClass(MetadataClassInfo classInfo)
         {
-            return Path.Combine(classInfo.UseInFrontend.SubFolder!, $"{BaseTypeConverter.ToKebabCase(classInfo.Name!)}.ts");
+            var result = Path.Combine(classInfo.UseInFrontend.SubFolder!, $"{BaseTypeConverter.ToKebabCase(classInfo.Name!)}.ts");
+            Logger.LogDebug($"Compiled filename vor {classInfo.Name!}: {result}");
+            return result;
         }
 
         /// <summary>

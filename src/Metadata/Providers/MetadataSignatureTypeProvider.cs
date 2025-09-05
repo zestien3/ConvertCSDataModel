@@ -1,6 +1,14 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
  
+// TODO: This implementation of the ISignatureTypeProvider interface
+//       returns a string. I assume that it can also be used to return a 
+//       MetadataClassInfo instance as well, which would make the code
+//       using it much easier to read.
+//       To take things really to the extreme, we might use the interface
+//       to directly create source code for a different language, for
+//       example to create a TypeScript representation of a given class.
+
 using System.Collections.Immutable;
 using System.Reflection.Metadata;
 using System.Text;
@@ -21,6 +29,10 @@ namespace Z3
     {
         public static readonly MetadataSignatureTypeProvider Instance = new MetadataSignatureTypeProvider();
 
+        /// <summary>
+        /// Prevent to create a new instance of this class,
+        /// as we want to implement the singleton pattern.
+        /// </summary>
         private MetadataSignatureTypeProvider() { }
 
         public string GetTypeFromDefinition(MetadataReader reader, TypeDefinitionHandle handle, byte rawTypeKind)
