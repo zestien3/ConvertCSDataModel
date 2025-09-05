@@ -45,11 +45,8 @@ namespace Z3
                     try
                     {
                         var signature = fieldDef.DecodeSignature<string, MetadataInfo>(MetadataSignatureTypeProvider.Instance, this);
-                        // TODO: For now we use this 'hack'
-                        //       We should create a class that converts C# types to TS types.
                         Type = signature;
                         IsArray = BaseTypeConverter.IsArray(Type);
-                        IsGeneric = BaseTypeConverter.IsGeneric(Type);
 
                         // If we have a nested class we need to add the namespace of the defining class.
                         // This will be the class in which the field is defined, which is classInfo.
@@ -73,9 +70,14 @@ namespace Z3
                             }
                         }
 
-                        if (DefiningClass.ContainingAssembly.ClassesByName.TryGetValue(Type, out var implementedClass))
+                        if (DefiningClass.ContainingAssembly!.ClassesByName.TryGetValue(Type, out var implementedClass))
                         {
                             ImplementedClass = implementedClass;
+                        }
+                        else
+                        {
+                            ImplementedClass = new MetadataClassInfoNotFound(Type);
+                            classInfo.ContainingAssembly!.AddClassToAssembly(ImplementedClass);
                         }
 
                         // The SpecialNameAttribute is set on (at least) the value__ field of an Enum.
@@ -96,7 +98,19 @@ namespace Z3
                             var attribute = Reader!.GetCustomAttribute(attributeHandle);
                             var customAttribute = new MetadataAttributeInfo(attribute, Reader);
                             if (!string.IsNullOrEmpty(customAttribute.Name))
+                            {
                                 attributes[customAttribute.Name!] = customAttribute;
+                                Logger.LogDebug($"Found attribute {customAttribute.Name} on {classInfo.Name}.{Name}");
+                            }
+                        }
+
+                        if (attributes.TryGetValue("NullableAttribute", out var na))
+                        {
+                            IsNullable = (byte)(na.FixedArguments[0].Value!) != 1;
+                        }
+                        else
+                        {
+                            IsNullable = DefiningClass.NullableContext != 1;
                         }
                     }
                     catch (Exception)
@@ -119,7 +133,7 @@ namespace Z3
         /// <summary>
         /// The class which this field is implementing.
         /// </summary>
-        public MetadataClassInfo? ImplementedClass { get; private set; }
+        public MetadataClassInfo? ImplementedClass { get; private set; } = null;
 
         /// <summary>
         /// The full name of the type, like System.Generic.List`1[SomeType].
@@ -134,7 +148,12 @@ namespace Z3
         /// <summary>
         /// Indicates if this is a generic type.
         /// </summary>
-        public bool IsGeneric { get; private set; }
+        public bool IsGeneric => BaseTypeConverter.IsGeneric(Type);
+
+        /// <summary>
+        /// Indicates if this is a nullable field.
+        /// </summary>
+        public bool IsNullable { get; private set; } = false;
 
         /// <summary>
         /// Indicates if this field should be serialized or not.

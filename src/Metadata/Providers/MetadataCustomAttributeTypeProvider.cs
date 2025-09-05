@@ -80,7 +80,7 @@ namespace Z3
             MetadataClassInfo? runtimeType = TypeResolver(type.Replace('/', '+'));
 
             // Default underlying value for Enum is int, so we try that if we  can't
-            // find the type. WIll work in most cases. The alternative is to throw an
+            // find the type. Will work in most cases. The alternative is to throw an
             // exception, which will probably happen anyway if we get it wrong here.
             if (null == runtimeType)
                 return PrimitiveTypeCode.Int32;
@@ -168,7 +168,9 @@ namespace Z3
             var folder = new DirectoryInfo(RuntimeEnvironment.GetRuntimeDirectory());
             var foundName = folder.GetFiles("*.dll").Max(f => new StringDiff(f.Name, assemblyName.Name!))?.Value;
 
-            if (null != foundName)
+            var check = assemblyName.Name!.Contains('.') ? assemblyName.Name![..assemblyName.Name!.IndexOf('.')] : assemblyName.Name!;
+
+            if ((null != foundName) && (foundName[..check.Length] == check))
             {
                 var fullName = Path.Combine(folder.FullName, foundName!);
 
@@ -188,7 +190,7 @@ namespace Z3
 
             while ((null == assembly) && assemblyName.Contains('.'))
             {
-                assemblyName = assemblyName[..typeName.LastIndexOf('.')];
+                assemblyName = assemblyName[..assemblyName.LastIndexOf('.')];
                 assembly = AssemblyResolver(new AssemblyName(assemblyName));
             }
 

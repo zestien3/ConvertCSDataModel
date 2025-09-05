@@ -50,11 +50,7 @@ namespace Z3
                     try
                     {
                         var signature = propertyDef.DecodeSignature<string, MetadataInfo>(MetadataSignatureTypeProvider.Instance, this);
-                        // TODO: For now we use this 'hack'
-                        //       We should extend the TypeScriptFormatter class to convert C# types to TS types.
                         Type = signature.ReturnType;
-                        IsGeneric = BaseTypeConverter.IsGeneric(Type);
-                        IsArray = BaseTypeConverter.IsArray(Type);
 
                         // If we have a nested class we need to add the namespace of the defining class.
                         // This will be the class in which the property is defined, which is classInfo.
@@ -78,13 +74,19 @@ namespace Z3
                             }
                         }
 
-                        if (DefiningClass.ContainingAssembly.ClassesByName.TryGetValue(Type, out var implementedClass))
+                        if (DefiningClass.ContainingAssembly!.ClassesByName.TryGetValue(Type, out var implementedClass))
                         {
                             ImplementedClass = implementedClass;
                         }
+                        else
+                        {
+                            ImplementedClass = new MetadataClassInfoNotFound(Type);
+                            classInfo.ContainingAssembly!.AddClassToAssembly(ImplementedClass);
+                        }
 
                         // We are going to look for Custom Attributes.
-                        // For now we are only interested in JsonIgnoreAttribute.
+                        // For now we are only interested in JsonIgnoreAttribute
+                        // and NullableAttribute.
                         // This code will get those for us. There are a number of 
                         // custom attributes we will skip, but that is OK for now.
                         var propAttributes = propertyDef.GetCustomAttributes();
@@ -93,7 +95,19 @@ namespace Z3
                             var attribute = Reader!.GetCustomAttribute(attributeHandle);
                             var customAttribute = new MetadataAttributeInfo(attribute, Reader);
                             if (!string.IsNullOrEmpty(customAttribute.Name))
+                            {
                                 attributes[customAttribute.Name!] = customAttribute;
+                                Logger.LogDebug($"Found attribute {customAttribute.Name} on {classInfo.Name}.{Name}");
+                            }
+                        }
+
+                        if (attributes.TryGetValue("NullableAttribute", out var na))
+                        {
+                            IsNullable = (byte)(na.FixedArguments[0].Value!) != 1;
+                        }
+                        else
+                        {
+                            IsNullable = DefiningClass.NullableContext != 1;
                         }
                     }
                     catch (ArgumentNullException) { }
@@ -113,7 +127,7 @@ namespace Z3
         /// <summary>
         /// The class which this property is implementing.
         /// </summary>
-        public MetadataClassInfo? ImplementedClass { get; private set; }
+        public MetadataClassInfo? ImplementedClass { get; private set; } = null;
 
         /// <summary>
         /// The full name of the type, like System.Generic.List`1[SomeType].
@@ -123,12 +137,17 @@ namespace Z3
         /// <summary>
         /// Indicates if this is an array or a list.
         /// </summary>
-        public bool IsArray { get; private set; }
+        public bool IsArray => BaseTypeConverter.IsArray(Type);
 
         /// <summary>
         /// Indicates if this is a generic type.
         /// </summary>
-        public bool IsGeneric { get; private set; }
+        public bool IsGeneric => BaseTypeConverter.IsGeneric(Type);
+
+        /// <summary>
+        /// Indicates if this is a generic property.
+        /// </summary>
+        public bool IsNullable { get; private set; } = false;
 
         /// <summary>
         /// Indicates if this property should be serialized or not.

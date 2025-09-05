@@ -16,11 +16,54 @@ using System.Collections.Generic;
 namespace Zestien3
 {
     /// <summary>
-    /// Attribute which tells the application to process the class it is set on.
+    /// This enum defines what kind of TypeScript constructor should be generated.
     /// </summary>
+    public enum TSConstructorType
+    {
+        /// <summary>
+        /// No constructor will be created.
+        /// </summary>
+        None,
+
+        /// <summary>
+        /// A constructor taking every property as a parameter will be created.
+        /// This will create a minimal file, where all properties are defined in the constructor.
+        /// </summary>
+
+        AllMembers,
+
+        /// <summary>
+        /// A constructor taking one parameter of the same type as the created class.
+        /// The constructor will contain the code where all properties are copied (a = other.a).
+        /// </summary>
+        Copy
+    }
+
+    /// <summary>
+    /// This attribute will create a TypeScript model from the class it is set on.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Enum)]
     internal class UseInFrontendAttribute : Attribute
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="UseInFrontendAttribute"/> class.
+        /// </summary>
+        public UseInFrontendAttribute() { }
+
+        /// <summary>
+        /// The subfolder where the TypeScript file will be generated.
+        /// </summary>
+
+        /// <summary>
+        /// The subfolder where the TypeScript file will be generated.
+        /// </summary>
         public string? SubFolder { get; set; }
+
+        /// <summary>
+        /// A constructor taking one parameter of the same type will be generated.
+        /// The constructor also contains the code that will copy each property and field.
+        /// </summary>
+        public TSConstructorType Constructor { get; set; } = TSConstructorType.None;
     }
 
     /// <summary>
@@ -189,9 +232,11 @@ namespace Zestien3
     [UseInFrontend(SubFolder = "Demo")]
     public class VariousMemberVisibilities
     {
-        private int ThisShouldNotBeSerialized;
+#pragma warning disable CS0169
+        private readonly int ThisShouldNotBeSerialized;
 
         private int ThisShouldAlsoNotBeSerialized { get; set; }
+#pragma warning restore CS0169
 
         /// <summary>
         /// This is a protected member field and should be serialized.
@@ -252,5 +297,37 @@ namespace Zestien3
         /// sOMEUpperCaseAfterTheFirstCharacter
         /// </summary>
         public int sOMEUpperCaseAfterTheFirstCharacter { get; set; }
+    }
+
+    /// <summary>
+    /// Class for the demo of this application.
+    /// </summary>
+    /// <remarks>
+    /// This class contains nullable properties.
+    /// </remarks>
+    [UseInFrontend(SubFolder = "Demo", Constructor = TSConstructorType.Copy)]
+    public class VariousNullableProperties
+    {
+        /// <summary>
+        /// Nullable property from a type defined in the same assembly.
+        /// </summary>
+        public VariousMemberVisibilities? MemberVisibilities { get; set; } = new();
+
+        /// <summary>
+        /// Nullable string property.
+        /// </summary>
+        public string? NullableString { get; set; }
+
+        /// <summary>
+        /// Non nullable string property.
+        /// </summary>
+        public string NonNullableString { get; set; } = string.Empty;
+
+#nullable disable
+        /// <summary>
+        /// String property in a nullable disabled context is nullable.
+        /// </summary>
+        public string NonNullableStringInNullableDisabledContext { get; set; } = null;
+#nullable restore
     }
 }

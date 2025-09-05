@@ -11,13 +11,13 @@ namespace Z3
     {
 
         [GeneratedRegex(@".*`\d+\[.+\]")]
-        private static partial Regex IsGenericTypeRegex();
+        public static partial Regex IsGenericTypeRegex();
 
         [GeneratedRegex(@"(.*)`\d+\[.+\]")]
-        private static partial Regex GetGenericTypeRegex();
+        public static partial Regex GetGenericTypeRegex();
 
         [GeneratedRegex(@".*`\d+\[(.+)\]")]
-        private static partial Regex StripGenericTypeRegex();
+        public static partial Regex StripGenericTypeRegex();
 
 
         // A neater way of defining the values for this array would be to use typeof().Name.
@@ -43,16 +43,16 @@ namespace Z3
         /// <summary>
         /// Convert the given C# type to a type for the language for which this converter is designed.
         /// </summary>
-        /// <param name="csType">The C# type in string format.</param>
+        /// <param name="classInfo">The C# type.</param>
         /// <returns>The given type converted to the language this converter is designed for.</returns>
-        public abstract string ConvertType(string csType);
+        public abstract string ConvertType(MetadataClassInfo classInfo);
 
         /// <summary>
         /// Convert the given C# type to a filename for the language for which this converter is designed.
         /// </summary>
-        /// <param name="csType">The C# type in string format.</param>
+        /// <param name="classInfo">The C# type.</param>
         /// <returns>The given type converted to a filename for the language this converter is designed for.</returns>
-        public abstract string GetFileName(string csType);
+        public abstract string GetFileName(MetadataClassInfo classInfo);
 
         /// <summary>
         /// Returns true if the given C# type is a standard type for the language to convert to.
@@ -62,15 +62,24 @@ namespace Z3
         public abstract bool IsStandardType(string csType);
 
         /// <summary>
+        /// Returns true if the given C# type is an array.
+        /// </summary>
+        /// <param name="csType">The C# type in string format.</param>
+        /// <returns>True if the given C# type is an array, false otherwise.</returns>
+        public static bool IsArray(string? csType)
+        {
+            return !string.IsNullOrEmpty(csType) && csType.EndsWith("[]");
+        }
+
+        /// <summary>
         /// Returns true if the given C# type is a generic type.
         /// </summary>
         /// <param name="csType">The C# type in string format.</param>
         /// <returns>True if the given C# type is a generic type, false otherwise.</returns>
-        public static bool IsGeneric(string csType)
+        public static bool IsGeneric(string? csType)
         {
             Regex regex = IsGenericTypeRegex();
-            var result = regex.IsMatch(csType);
-            return result;
+            return !string.IsNullOrEmpty(csType) && regex.IsMatch(csType!);
         }
 
         /// <summary>
@@ -121,16 +130,6 @@ namespace Z3
             }
 
             return result;
-        }
-
-        /// <summary>
-        /// Returns true if the given C# type is an array.
-        /// </summary>
-        /// <param name="csType">The C# type in string format.</param>
-        /// <returns>True if the given C# type is an array, false otherwise.</returns>
-        public static bool IsArray(string csType)
-        {
-            return csType.EndsWith("[]");
         }
 
         /// <summary>

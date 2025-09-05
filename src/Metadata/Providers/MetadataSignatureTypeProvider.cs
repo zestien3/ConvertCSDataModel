@@ -23,9 +23,20 @@ namespace Z3
 
         private MetadataSignatureTypeProvider() { }
 
-        public string GetTypeFromDefinition(MetadataReader reader, TypeDefinitionHandle handle, byte rawTypeKind) => handle.ToTypeString(reader);
-        public string GetTypeFromReference(MetadataReader reader, TypeReferenceHandle handle, byte rawTypeKind) => handle.ToTypeString(reader);
-        public string GetTypeFromSpecification(MetadataReader reader, MetadataInfo genericContext, TypeSpecificationHandle handle, byte rawTypeKind) => handle.ToTypeString(reader, genericContext);
+        public string GetTypeFromDefinition(MetadataReader reader, TypeDefinitionHandle handle, byte rawTypeKind)
+        {
+            return handle.ToTypeString(reader);
+        }
+
+        public string GetTypeFromReference(MetadataReader reader, TypeReferenceHandle handle, byte rawTypeKind)
+        {
+            return handle.ToTypeString(reader);
+        }
+
+        public string GetTypeFromSpecification(MetadataReader reader, MetadataInfo genericContext, TypeSpecificationHandle handle, byte rawTypeKind)
+        {
+            return handle.ToTypeString(reader, genericContext);
+        }
 
         public string GetSZArrayType(string elementType) => elementType + "[]";
         public string GetArrayType(string elementType, ArrayShape shape) => elementType + "[...]";  //Helpers.ComputeArraySuffix(shape.Rank, multiDim: true);
@@ -34,7 +45,7 @@ namespace Z3
 
         public string GetGenericInstantiation(string genericType, ImmutableArray<string> typeArguments)
         {
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
             sb.Append(genericType);
             sb.Append('[');
             for (int i = 0; i < typeArguments.Length; i++)
@@ -55,7 +66,7 @@ namespace Z3
 
         public string GetFunctionPointerType(MethodSignature<string> signature)
         {
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
             sb.Append(signature.ReturnType);
             sb.Append('(');
             for (int i = 0; i < signature.ParameterTypes.Length; i++)

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Reflection.Metadata;
 
 namespace Z3
@@ -74,8 +73,9 @@ namespace Z3
                     }
                 }
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                Logger.LogDebug(e.StackTrace!);
                 Name = null;
             }
         }

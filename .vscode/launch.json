@@ -8,8 +8,6 @@
       "program": "${workspaceFolder}/bin/Debug/net8.0/ConvertCSDataModel.dll",
       "args": [
         "-a",
-        "-v",
-        "Debug",
         "-f",
         "D:/Data/Git/TimeTracker/BackEnd/bin/Debug/net8.0/TimeTracker.dll",
         "-l",
@@ -29,7 +27,7 @@
         "demo",
         "-a",
         "-v",
-        "Normal"
+        "Silent"
       ],
       "cwd": "${workspaceFolder}",
       "stopAtEntry": false,

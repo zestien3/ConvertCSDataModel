@@ -68,7 +68,7 @@ namespace Z3
                     if (!ReferencedFiles.Contains(baseType))
                     {
                         ReferencedFiles.Add(baseType);
-                        WriteFileReference(baseType, Converter.GetFileName(baseType), classInfo.SubFolder);
+                        WriteFileReference(baseType, Converter.GetFileName(classInfo.BaseType), classInfo.UseInFrontend.SubFolder!);
                     }
                 }
             }
@@ -82,7 +82,7 @@ namespace Z3
                     if (!ReferencedFiles.Contains(type) && !Converter.IsStandardType(type))
                     {
                         ReferencedFiles.Add(type);
-                        WriteFileReference(type, Converter.GetFileName(type), property.DefiningClass.SubFolder);
+                        WriteFileReference(type, Converter.GetFileName(property.ImplementedClass!), property.DefiningClass.UseInFrontend.SubFolder!);
                     }
                 }
             }
@@ -96,7 +96,7 @@ namespace Z3
                     if (!ReferencedFiles.Contains(type) && !Converter.IsStandardType(type))
                     {
                         ReferencedFiles.Add(type);
-                        WriteFileReference(type, Converter.GetFileName(type), field.DefiningClass.SubFolder);
+                        WriteFileReference(type, Converter.GetFileName(field.ImplementedClass!), field.DefiningClass.UseInFrontend.SubFolder!);
                     }
                 }
             }
@@ -118,25 +118,10 @@ namespace Z3
             WriteConstructor(classInfo);
 
             // Now we write the definitions of all properties that are to be serialized.
-            foreach (var property in classInfo.Properties.Values)
-            {
-                Output.WriteLine();
-                WriteXmlDocumentation(property.XmlComment, 1);
-                WriteProperty(property);
-            }
-
-            bool firstLine = classInfo.IsEnum;
+            WriteProperties(classInfo);
 
             // Followed by the definitions of all fields that are to be serialized.
-            foreach (var field in classInfo.Fields.Values)
-            {
-                if (!firstLine)
-                {
-                    Output.WriteLine();
-                }
-                firstLine = false;
-                WriteField(field);
-            }
+            WriteFields(classInfo);
 
             // We now have the chance to close the class.
             CloseClass(classInfo);
@@ -153,12 +138,12 @@ namespace Z3
         protected abstract void OpenNamespace(MetadataClassInfo classInfo);
         protected abstract void OpenClass(MetadataClassInfo classInfo);
         protected abstract void WriteConstructor(MetadataClassInfo classInfo);
-        protected abstract void WriteProperty(MetadataPropertyInfo classInfo);
-        protected abstract void WriteField(MetadataFieldInfo classInfo);
+        protected abstract void WriteProperties(MetadataClassInfo classInfo);
+        protected abstract void WriteFields(MetadataClassInfo classInfo);
         protected abstract void CloseClass(MetadataClassInfo classInfo);
         protected abstract void CloseNamespace(MetadataClassInfo classInfo);
 
-        protected void WriteIndent(int level)
+        public void WriteIndent(int level)
         {
             Output.Write(new string(' ', IndentLength * level));
         }

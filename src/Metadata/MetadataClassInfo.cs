@@ -12,6 +12,41 @@ namespace Z3
         private Dictionary<string, MetadataFieldInfo> fields = [];
         private Dictionary<string, MetadataAttributeInfo> attributes = [];
 
+        protected MetadataClassInfo(string type) : base(null, null)
+        {
+            Logger.LogDebug($"Undefined or anonymous class found: {type}");
+
+            var isGeneric = BaseTypeConverter.IsGeneric(type);
+            var isArray = BaseTypeConverter.IsArray(type);
+            if (isArray)
+            {
+                type = type[.. ^2];
+            }
+
+            var regex = BaseTypeConverter.StripGenericTypeRegex();
+            if (regex.IsMatch(type))
+            {
+                type = regex.Matches(type)[0].Groups[1].Value;
+            }
+
+            var isStandardType = BaseTypeConverter.csStandardTypes.Contains(BaseTypeConverter.StripToBareType(type));
+            if (BaseTypeConverter.IsArray(type))
+            {
+                type = type[..^2];
+                isArray = true;
+            }
+
+            ContainingAssembly = null;
+            Namespace = string.Empty;
+            UseInFrontend = new()
+            {
+                Constructor = TSConstructorType.None,
+                SubFolder = string.Empty
+            };
+
+            Name = type + (isArray ? "[]" : "");
+        }
+
         public MetadataClassInfo(MetadataAssemblyInfo assembly, TypeDefinition typeDefinition, MetadataReader reader, XmlDocumentationFile? xmlDoc) : base(reader, xmlDoc)
         {
             ContainingAssembly = assembly;
@@ -24,7 +59,7 @@ namespace Z3
                 Namespace = assembly.ClassesByHandle[typeDef.GetDeclaringType()].FullName;
             }
 
-            Logger.LogDebug($"Creating clas info for {FullName}");
+            Logger.LogDebug($"Creating class info for {FullName}");
 
             XmlMemberName = $"T:{FullName}";
 
@@ -37,14 +72,42 @@ namespace Z3
             {
                 var attribute = new MetadataAttributeInfo(reader.GetCustomAttribute(attributeHandle), Reader!);
                 if (!string.IsNullOrEmpty(attribute.Name))
+                {
                     attributes[attribute.Name!] = attribute;
+                    Logger.LogDebug($"Found attribute {attribute.Name} on class {Name}");
+                }
             }
 
-            // Get the SubFolder where the file for this classinfo needs to be stored.
-            if (attributes.TryGetValue(nameof(UseInFrontendAttribute), out var attr) &&
-                attr.NamedArguments.TryGetValue(nameof(UseInFrontendAttribute.SubFolder), out var subFolder))
+            if (attributes.TryGetValue("NullableContextAttribute", out var nca))
             {
-                SubFolder = (string)subFolder.Value!;
+                NullableContext = (byte)nca.FixedArguments[0].Value!;
+            }
+
+            // Get the UseInFrontendAttribute and store it.
+            if (attributes.TryGetValue(nameof(UseInFrontendAttribute), out var useInFrontend))
+            {
+                if (!useInFrontend.NamedArguments.TryGetValue(nameof(UseInFrontendAttribute.SubFolder), out var subFolder))
+                {
+                    subFolder = new(nameof(UseInFrontendAttribute.SubFolder), CustomAttributeNamedArgumentKind.Property, "string", ".");
+                }
+                if (!useInFrontend.NamedArguments.TryGetValue(nameof(UseInFrontendAttribute.Constructor), out var constructor))
+                {
+                    constructor = new(nameof(UseInFrontendAttribute.Constructor), CustomAttributeNamedArgumentKind.Property, "int", 0);
+                }
+
+                UseInFrontend = new()
+                {
+                    Constructor = (TSConstructorType)((int)constructor.Value!),
+                    SubFolder = (string)subFolder.Value!
+                };
+            }
+            else
+            {
+                UseInFrontend = new()
+                {
+                    Constructor = TSConstructorType.None,
+                    SubFolder = "."
+                };
             }
         }
 
@@ -116,7 +179,7 @@ namespace Z3
             }
         }
 
-        public MetadataAssemblyInfo ContainingAssembly { get; private set; }
+        public MetadataAssemblyInfo? ContainingAssembly { get; private set; }
 
         public IReadOnlyDictionary<string, MetadataPropertyInfo> Properties { get { return properties.AsReadOnly(); } }
 
@@ -124,16 +187,35 @@ namespace Z3
 
         public MetadataClassInfo? BaseType { get; private set; }
 
-        public bool IsEnum { get; private set; } = false;
-
         public string? BaseTypeFullName { get; private set; }
 
         public string Namespace { get; }
 
         public string FullName { get { return Namespace + "." + Name; } }
 
-        public string SubFolder { get; private set; } = string.Empty;
+        public bool IsEnum { get; private set; } = false;
+
+        public bool IsArray => BaseTypeConverter.IsArray(Name);
+
+        public bool IsGeneric => BaseTypeConverter.IsGeneric(Name);
+
+        public byte NullableContext { get; private set; } = 0;
+
+        public UseInFrontendAttribute UseInFrontend { get; private set; }
 
         public IReadOnlyDictionary<string, MetadataAttributeInfo> Attributes { get { return attributes.AsReadOnly(); } }
+    }
+
+    internal class MetadataClassInfoNotFound : MetadataClassInfo
+    {
+        public MetadataClassInfoNotFound(string type) : base(type)
+        {
+        }
+
+        public override void AllClassesLoaded(MetadataInfo? metadataInfo, int depthToLoad)
+        {
+            // This class is not read using the metadata reflection framework,
+            // so there is no need to do anything here.
+        }
     }
 }

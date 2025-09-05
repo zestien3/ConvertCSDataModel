@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Zestien3;
 
 namespace Z3
 {
@@ -16,7 +17,7 @@ namespace Z3
         /// <returns>The file name to store the TypeScript representation of the given MetadataClassInfo.</returns>
         public static string GetFileNameFromClass(MetadataClassInfo classInfo)
         {
-            return Path.Combine(classInfo.SubFolder, $"{BaseTypeConverter.ToKebabCase(classInfo.Name!)}.ts");
+            return Path.Combine(classInfo.UseInFrontend.SubFolder!, $"{BaseTypeConverter.ToKebabCase(classInfo.Name!)}.ts");
         }
 
         /// <summary>
@@ -80,7 +81,7 @@ namespace Z3
         {
             if (AssemblyInfo.ClassesByName.TryGetValue(className, out var classInfo))
             {
-                var subFolder = ".\\" + classInfo.SubFolder;
+                var subFolder = ".\\" + classInfo.UseInFrontend.SubFolder!;
 
                 subFolder = Path.GetRelativePath(currentSubFolder, subFolder).Replace("\\", "/");
 
@@ -114,95 +115,92 @@ namespace Z3
 
         protected override void WriteConstructor(MetadataClassInfo classInfo)
         {
-            if (!classInfo.IsEnum)
-            {
-                WriteIndent(1);
-                Output.WriteLine($"constructor(other?: {classInfo.Name!}) {{");
-
-                if (null != classInfo.BaseType)
-                {
-                    WriteIndent(2);
-                    Output.WriteLine("super(other);");
-                }
-
-                WriteIndent(2);
-                Output.WriteLine("if (other) {");
-                foreach (var property in classInfo.Properties.Values)
-                {
-                    WriteIndent(3);
-                    Output.WriteLine($"this.{BaseTypeConverter.ToJSONCase(property.Name!)} = other.{BaseTypeConverter.ToJSONCase(property.Name!)};");
-                }
-                WriteIndent(2);
-                Output.WriteLine("}");
-                WriteIndent(1);
-                Output.WriteLine("}");
-            }
+            _ = new TypeScriptConstructors(classInfo, this, Converter, Output);
         }
 
-        protected override void WriteProperty(MetadataPropertyInfo propertyInfo)
+        protected override void WriteProperties(MetadataClassInfo classInfo)
         {
-            var type = Converter.ConvertType(propertyInfo.Type!);
-            WriteIndent(1);
-            Output.Write($"{(propertyInfo.Visibility == Visibility.Public ? "public" : "protected")} {BaseTypeConverter.ToJSONCase(propertyInfo.Name!)}: {type} = ");
-            if (type.EndsWith("[]"))
+            if (classInfo.UseInFrontend.Constructor != TSConstructorType.AllMembers)
             {
-                Output.WriteLine("[];");
-            }
-            else
-            {
-                if (Converter.IsStandardType(propertyInfo.Type!))
+                foreach (var propertyInfo in classInfo.Properties.Values)
                 {
-                    Output.WriteLine($"{TypeScriptTypeConverter.tsStandardTypeValues[BaseTypeConverter.csStandardTypes.IndexOf(propertyInfo.Type!)]};");
-                }
-                else
-                {
-                    if ((null != propertyInfo.ImplementedClass) && propertyInfo.ImplementedClass.IsEnum)
+                    Output.WriteLine();
+                    WriteXmlDocumentation(propertyInfo.XmlComment, 1);
+
+                    var type = Converter.ConvertType(propertyInfo.ImplementedClass!);
+                    WriteIndent(1);
+                    Output.Write($"{(propertyInfo.Visibility == Visibility.Public ? "public" : "protected")} ");
+                    Output.Write($"{BaseTypeConverter.ToJSONCase(propertyInfo.Name!)}: {type}");
+                    Output.Write($"{(propertyInfo.IsNullable ? " | null" : "")} = ");
+                    if (type.EndsWith("[]"))
                     {
-                        Output.WriteLine($"{propertyInfo.ImplementedClass.Name}.{propertyInfo.ImplementedClass.Fields.First().Value.Name};");
+                        Output.WriteLine("[];");
                     }
                     else
                     {
-                        Output.WriteLine($"new {type}();");
-                    }
-                }
-            }
-        }
-
-        protected override void WriteField(MetadataFieldInfo fieldInfo)
-        {
-            if (fieldInfo.DefiningClass.IsEnum)
-            {
-                WriteXmlDocumentation(fieldInfo.XmlComment, 1);
-                WriteIndent(1);
-                Output.Write(fieldInfo.Name);
-                Output.WriteLine((fieldInfo == fieldInfo.DefiningClass.Fields.Last().Value) ? "" : ",");
-            }
-            else
-            {
-                WriteXmlDocumentation(fieldInfo.XmlComment, 1);
-
-                var type = Converter.ConvertType(fieldInfo.Type!);
-                WriteIndent(1);
-                Output.Write($"{(fieldInfo.Visibility == Visibility.Public ? "public" : "protected")} {BaseTypeConverter.ToJSONCase(fieldInfo.Name!)}: {type}{(fieldInfo.IsArray ? "[]" : "")} = ");
-                if (fieldInfo.Type!.EndsWith("[]"))
-                {
-                    Output.WriteLine("[];");
-                }
-                else
-                {
-                    if (Converter.IsStandardType(fieldInfo.Type!))
-                    {
-                        Output.WriteLine($"{TypeScriptTypeConverter.tsStandardTypeValues[BaseTypeConverter.csStandardTypes.IndexOf(fieldInfo.Type!)]};");
-                    }
-                    else
-                    {
-                        if ((null != fieldInfo.ImplementedClass) && fieldInfo.ImplementedClass.IsEnum)
+                        if (Converter.IsStandardType(propertyInfo.Type!))
                         {
-                            Output.WriteLine($"{fieldInfo.ImplementedClass.Name}.{fieldInfo.ImplementedClass.Fields.First().Value.Name};");
+                            Output.WriteLine($"{TypeScriptTypeConverter.tsStandardTypeValues[BaseTypeConverter.csStandardTypes.IndexOf(propertyInfo.ImplementedClass!.Name!)]};");
                         }
                         else
                         {
-                            Output.WriteLine($"new {type}();");
+                            if ((null != propertyInfo.ImplementedClass) && propertyInfo.ImplementedClass.IsEnum)
+                            {
+                                Output.WriteLine($"{propertyInfo.ImplementedClass.Name}.{propertyInfo.ImplementedClass.Fields.First().Value.Name};");
+                            }
+                            else
+                            {
+                                Output.WriteLine($"new {type}();");
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        protected override void WriteFields(MetadataClassInfo classInfo)
+        {
+            if (classInfo.UseInFrontend.Constructor != TSConstructorType.AllMembers)
+            {
+                foreach (var fieldInfo in classInfo.Fields.Values)
+                {
+                    Output.WriteLine();
+                    WriteXmlDocumentation(fieldInfo.XmlComment, 1);
+
+                    if (fieldInfo.DefiningClass.IsEnum)
+                    {
+                        WriteIndent(1);
+                        Output.Write(fieldInfo.Name);
+                        Output.WriteLine((fieldInfo == fieldInfo.DefiningClass.Fields.Last().Value) ? "" : ",");
+                    }
+                    else
+                    {
+                        var type = null == fieldInfo.ImplementedClass ? fieldInfo.Type : Converter.ConvertType(fieldInfo.ImplementedClass!);
+                        WriteIndent(1);
+                        Output.Write($"{(fieldInfo.Visibility == Visibility.Public ? "public" : "protected")} ");
+                        Output.Write($"{BaseTypeConverter.ToJSONCase(fieldInfo.Name!)}: {type}{(fieldInfo.IsArray ? "[]" : "")}");
+                        Output.Write($"{(fieldInfo.IsNullable ? " | null" : "")} = ");
+                        if (fieldInfo.Type!.EndsWith("[]"))
+                        {
+                            Output.WriteLine("[];");
+                        }
+                        else
+                        {
+                            if (Converter.IsStandardType(fieldInfo.Type!))
+                            {
+                                Output.WriteLine($"{TypeScriptTypeConverter.tsStandardTypeValues[BaseTypeConverter.csStandardTypes.IndexOf(fieldInfo.Type!)]};");
+                            }
+                            else
+                            {
+                                if ((null != fieldInfo.ImplementedClass) && fieldInfo.ImplementedClass.IsEnum)
+                                {
+                                    Output.WriteLine($"{fieldInfo.ImplementedClass.Name}.{fieldInfo.ImplementedClass.Fields.First().Value.Name};");
+                                }
+                                else
+                                {
+                                    Output.WriteLine($"new {type}();");
+                                }
+                            }
                         }
                     }
                 }

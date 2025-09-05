@@ -43,38 +43,32 @@ namespace Z3
         /// <summary>
         /// Convert the given C# type to a TypeSCript type.
         /// </summary>
-        /// <param name="csType">The C# type in string format.</param>
+        /// <param name="classInfo">The C# type.</param>
         /// <returns>The given type converted to TypeScript.</returns>
-        public override string ConvertType(string csType)
+        public override string ConvertType(MetadataClassInfo classInfo)
         {
-            string result;
-            var isArray = IsArray(csType);
+            var result = classInfo.Name!;
 
-            if (IsGeneric(csType))
+            if (classInfo.IsArray)
             {
-                isArray |= tsGenericArrayTypes.Contains(GetGenericType(csType));
+                result = result[..^2];
             }
 
-            if (IsArray(csType))
+            if (classInfo.IsGeneric)
             {
-                csType = csType[..^2];
+                result = StripToBareType(result);
             }
 
-            if (IsGeneric(csType))
+            if (IsStandardType(result))
             {
-                csType = StripToBareType(csType);
-            }
-
-            if (IsStandardType(csType))
-            {
-                result = tsStandardTypes[BaseTypeConverter.csStandardTypes.IndexOf(csType)];
+                result = tsStandardTypes[BaseTypeConverter.csStandardTypes.IndexOf(result)];
             }
             else
             {
-                result = csType[(csType.LastIndexOf('.') + 1)..];
+                result = result[(result.LastIndexOf('.') + 1)..];
             }
 
-            if (isArray)
+            if (classInfo.IsArray)
             {
                 result += "[]";
             }
@@ -85,11 +79,11 @@ namespace Z3
         /// <summary>
         /// Convert the given C# type to a filename for TypeScript.
         /// </summary>
-        /// <param name="csType">The C# type in string format.</param>
+        /// <param name="classInfo">The C# type.</param>
         /// <returns>The given type converted to a filename for TypeScript.</returns>
-        public override string GetFileName(string csType)
+        public override string GetFileName(MetadataClassInfo classInfo)
         {
-            csType = ConvertType(csType);
+            var csType = ConvertType(classInfo);
             return ToKebabCase(csType);
         }
 

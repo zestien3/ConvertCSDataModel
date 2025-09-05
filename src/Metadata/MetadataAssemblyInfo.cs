@@ -40,18 +40,30 @@ namespace Z3
             Name = Path.GetFileNameWithoutExtension(assemblyName);
 
             fileStream = new FileStream(assemblyName!, FileMode.Open, FileAccess.Read, FileShare.Read);
-            portableExecutableReader = new PEReader(fileStream); //.BaseStream);
+            portableExecutableReader = new PEReader(fileStream);
             Reader = portableExecutableReader.GetMetadataReader();
 
             foreach (var typeDefHandle in Reader.TypeDefinitions)
             {
-                AddTypeToClass(typeDefHandle);
+                AddClassToAssembly(typeDefHandle);
             }
 
             AllClassesLoaded(this, depthToLoad);
         }
 
-        private void AddTypeToClass(TypeDefinitionHandle typeDefHandle)
+        public void AddClassToAssembly(MetadataClassInfo classInfo)
+        {
+            if (string.IsNullOrEmpty(classInfo.Namespace))
+            {
+                classesByName[classInfo.Name!] = classInfo;
+            }
+            else
+            {
+                classesByName[classInfo.FullName] = classInfo;
+            }
+        }
+
+        private void AddClassToAssembly(TypeDefinitionHandle typeDefHandle)
         {
             var typeDef = Reader!.GetTypeDefinition(typeDefHandle);
 
@@ -65,7 +77,7 @@ namespace Z3
 
             var typeInfo = new MetadataClassInfo(this, typeDef, Reader, XmlDoc);
 
-            classesByName[typeInfo.FullName] = typeInfo;
+            AddClassToAssembly(typeInfo);
             classesByHandle[typeDefHandle] = typeInfo;
 
             // Add any nested classes to the list as well.
@@ -73,7 +85,7 @@ namespace Z3
             // so we can access it from the nested class.
             foreach (var subTypeDefinition in typeDef.GetNestedTypes())
             {
-                AddTypeToClass(subTypeDefinition);
+                AddClassToAssembly(subTypeDefinition);
             }
         }
 
@@ -106,5 +118,6 @@ namespace Z3
                 }
             }
         }
+        public static IReadOnlyDictionary<string, MetadataAssemblyInfo?> AllLoadedAssemblies => allLoadedAssemblies.AsReadOnly();
     }
 }
