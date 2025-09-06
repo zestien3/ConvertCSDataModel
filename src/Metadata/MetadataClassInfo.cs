@@ -16,35 +16,11 @@ namespace Z3
         {
             Logger.LogDebug($"Undefined or anonymous class found: {type}");
 
-            var isGeneric = BaseTypeConverter.IsGeneric(type);
-            var isArray = BaseTypeConverter.IsArray(type);
-            if (isArray)
-            {
-                type = type[.. ^2];
-            }
-
-            var regex = BaseTypeConverter.StripGenericTypeRegex();
-            if (regex.IsMatch(type))
-            {
-                type = regex.Matches(type)[0].Groups[1].Value;
-            }
-
-            var isStandardType = BaseTypeConverter.csStandardTypes.Contains(BaseTypeConverter.StripToBareType(type));
-            if (BaseTypeConverter.IsArray(type))
-            {
-                type = type[..^2];
-                isArray = true;
-            }
+            UseInFrontend = new UseInFrontendAttribute();
 
             ContainingAssembly = null;
+            Name = type;
             Namespace = string.Empty;
-            UseInFrontend = new()
-            {
-                Constructor = TSConstructorType.None,
-                SubFolder = string.Empty
-            };
-
-            Name = type + (isArray ? "[]" : "");
         }
 
         public MetadataClassInfo(MetadataAssemblyInfo assembly, TypeDefinition typeDefinition, MetadataReader reader, XmlDocumentationFile? xmlDoc) : base(reader, xmlDoc)

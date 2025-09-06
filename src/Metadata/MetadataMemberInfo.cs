@@ -28,7 +28,7 @@ namespace Z3
                         // If we have a nested class we need to add the namespace of the defining class.
                         // This will be the class in which the member is defined, which is classInfo.
                         // Note that Type should also be changed, but we see how far we get without doing that.
-                        if (BaseTypeConverter.StripToBareType(Type)[0] == '.')
+                        if (bareType[0] == '.')
                         {
                             if (IsGeneric)
                             {
@@ -53,7 +53,7 @@ namespace Z3
                         }
                         else
                         {
-                            ImplementedClass = new MetadataClassInfoNotFound(bareType);
+                            ImplementedClass = new MetadataClassInfoNotFound(Type);
                             classInfo.ContainingAssembly!.AddClassToAssembly(ImplementedClass);
                         }
 

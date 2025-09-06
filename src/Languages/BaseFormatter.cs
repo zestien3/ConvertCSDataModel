@@ -82,7 +82,7 @@ namespace Z3
                     if (!ReferencedFiles.Contains(type) && !Converter.IsStandardType(type))
                     {
                         ReferencedFiles.Add(type);
-                        WriteFileReference(type, Converter.GetFileName(property.ImplementedClass!), property.DefiningClass.UseInFrontend.SubFolder!);
+                        WriteFileReference(type, Converter.GetFileName(property.ImplementedClass!), property.DefiningClass!.UseInFrontend.SubFolder!);
                     }
                 }
             }
@@ -96,7 +96,7 @@ namespace Z3
                     if (!ReferencedFiles.Contains(type) && !Converter.IsStandardType(type))
                     {
                         ReferencedFiles.Add(type);
-                        WriteFileReference(type, Converter.GetFileName(field.ImplementedClass!), field.DefiningClass.UseInFrontend.SubFolder!);
+                        WriteFileReference(type, Converter.GetFileName(field.ImplementedClass!), field.DefiningClass!.UseInFrontend.SubFolder!);
                     }
                 }
             }

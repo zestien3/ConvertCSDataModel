@@ -72,7 +72,7 @@ namespace Z3
         /// <remarks>
         /// In our case TType is a string, as this class implements
         /// the ICustomAttributeTypeProvider&lt;string&gt; interface. 
-        /// <remarks>
+        /// </remarks>
         public string GetSystemType()
         {
             return "System.Type";
@@ -85,7 +85,7 @@ namespace Z3
         /// <remarks>
         /// In our case TType is a string, as this class implements
         /// the ICustomAttributeTypeProvider&lt;string&gt; interface. 
-        /// <remarks>
+        /// </remarks>
         public string GetSZArrayType(string elementType) { return $"{elementType}[]"; }
 
         // TODO: To make this class return a MetadataAttributeInfo instance,

@@ -17,7 +17,8 @@ namespace Z3
         /// <returns>The file name to store the TypeScript representation of the given MetadataClassInfo.</returns>
         public static string GetFileNameFromClass(MetadataClassInfo classInfo)
         {
-            var result = Path.Combine(classInfo.UseInFrontend.SubFolder!, $"{BaseTypeConverter.ToKebabCase(classInfo.Name!)}.ts");
+            var bareTypeName = BaseTypeConverter.StripToBareType(classInfo.Name!);
+            var result = Path.Combine(classInfo.UseInFrontend.SubFolder!, $"{BaseTypeConverter.ToKebabCase(bareTypeName)}.ts");
             Logger.LogDebug($"Compiled filename vor {classInfo.Name!}: {result}");
             return result;
         }
@@ -169,7 +170,7 @@ namespace Z3
                     Output.WriteLine();
                     WriteXmlDocumentation(fieldInfo.XmlComment, 1);
 
-                    if (fieldInfo.DefiningClass.IsEnum)
+                    if (fieldInfo.DefiningClass!.IsEnum)
                     {
                         WriteIndent(1);
                         Output.Write(fieldInfo.Name);

@@ -57,7 +57,7 @@ namespace Zestien3
         /// <summary>
         /// The subfolder where the TypeScript file will be generated.
         /// </summary>
-        public string? SubFolder { get; set; }
+        public string SubFolder { get; set; } = string.Empty;
 
         /// <summary>
         /// A constructor taking one parameter of the same type will be generated.

@@ -49,6 +49,8 @@ namespace Z3
         {
             var result = classInfo.Name!;
 
+            var isArray = classInfo.IsArray || classInfo.IsGeneric;
+
             if (classInfo.IsArray)
             {
                 result = result[..^2];
@@ -68,7 +70,7 @@ namespace Z3
                 result = result[(result.LastIndexOf('.') + 1)..];
             }
 
-            if (classInfo.IsArray)
+            if (isArray)
             {
                 result += "[]";
             }
@@ -83,7 +85,7 @@ namespace Z3
         /// <returns>The given type converted to a filename for TypeScript.</returns>
         public override string GetFileName(MetadataClassInfo classInfo)
         {
-            var csType = ConvertType(classInfo);
+            var csType = StripToBareType(ConvertType(classInfo));
             return ToKebabCase(csType);
         }
 
