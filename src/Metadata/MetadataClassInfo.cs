@@ -177,7 +177,7 @@ namespace Z3
 
         public bool IsGeneric => BaseTypeConverter.IsGeneric(Name);
 
-        public byte NullableContext { get; private set; } = 0;
+        public byte? NullableContext { get; private set; }
 
         public UseInFrontendAttribute UseInFrontend { get; private set; }
 

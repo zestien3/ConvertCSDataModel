@@ -94,13 +94,32 @@ namespace Z3
                         }
                         else
                         {
-                            if ((DefiningClass.NullableContext == 0) && (Type != "string"))
+                            var nullableContext = 1;
+                            var definingClass = DefiningClass;
+                            while (null != definingClass && null == definingClass.NullableContext)
+                            {
+                                if (definingClass.ContainingAssembly!.ClassesByName.ContainsKey(definingClass.Namespace))
+                                {
+                                    definingClass = definingClass.ContainingAssembly.ClassesByName[definingClass.Namespace];
+                                }
+                                else
+                                {
+                                    definingClass = null;
+                                }
+                            }
+
+                            if (null != definingClass?.NullableContext)
+                            {
+                                nullableContext = definingClass.NullableContext.Value;
+                            }
+
+                            if ((nullableContext == 0) && (Type != "string"))
                             {
                                 IsNullable = !string.IsNullOrEmpty(ImplementedClass.BaseTypeFullName);
                             }
                             else
                             {
-                                IsNullable = DefiningClass.NullableContext != 1;
+                                IsNullable = nullableContext != 1;
                             }
                         }
                     }

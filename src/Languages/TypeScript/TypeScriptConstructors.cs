@@ -76,7 +76,7 @@ namespace Z3
                         {
                             Output.Write(", ");
                         }
-                        var type = Converter.ConvertType(property.ImplementedClass!);
+                        var type = Converter.ConvertType(property);
                         if (topLevel) Output.Write($"{property.Visibility.ToString().ToLower()} ");
                         Output.Write($"{BaseTypeConverter.ToJSONCase(property.Name!)}: {type}{(property.IsNullable ? " | null" : "")}");
                         first = false;
@@ -87,7 +87,7 @@ namespace Z3
                         {
                             Output.Write(", ");
                         }
-                        var type = Converter.ConvertType(field.ImplementedClass!);
+                        var type = Converter.ConvertType(field);
                         if (topLevel) Output.Write($"{field.Visibility.ToString().ToLower()} ");
                         Output.Write($"{BaseTypeConverter.ToJSONCase(field.Name!)}: {type}{(field.IsNullable ? " | null" : "")}");
                         first = false;

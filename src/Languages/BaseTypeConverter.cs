@@ -45,7 +45,7 @@ namespace Z3
         /// </summary>
         /// <param name="classInfo">The C# type.</param>
         /// <returns>The given type converted to the language this converter is designed for.</returns>
-        public abstract string ConvertType(MetadataClassInfo classInfo);
+        public abstract string ConvertType(MetadataMemberInfo classInfo);
 
         /// <summary>
         /// Convert the given C# type to a filename for the language for which this converter is designed.
@@ -100,10 +100,14 @@ namespace Z3
         }
 
         /// <summary>
-        /// Returns the C# parameter type of this generic type.
+        /// Removes any generic part and array indicators from the typename.
+        /// What is left is the namespace and the typename.
         /// </summary>
+        /// <remarks>
+        /// System.Collections.Generic.List`1[Zestien3.BigBeautifulClass] would become Zestien3.BigBeautifulClass.
+        /// </remarks>
         /// <param name="csType">The complete C# type in string format.</param>
-        /// <returns>The C# parameter type of this generic type.</returns>
+        /// <returns>The namespace and naked typename.</returns>
         public static string StripToBareType(string csType)
         {
             var result = csType;
@@ -130,6 +134,21 @@ namespace Z3
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// Removes the namespace and any generic part and array indicators from the typename.
+        /// What is left is naked typename without namespace.
+        /// </summary>
+        /// <remarks>
+        /// System.Collections.Generic.List`1[Zestien3.BigBeautifulClass] would become BigBeautifulClass.
+        /// </remarks>
+        /// <param name="csType">The complete C# type in string format.</param>
+        /// <returns>The naked typename.</returns>
+        public static string StripToMinimalType(string csType)
+        {
+            var result = StripToBareType(csType);
+            return result[(result.LastIndexOf(".") + 1)..]; 
         }
 
         /// <summary>

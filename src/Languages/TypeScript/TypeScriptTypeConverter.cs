@@ -43,24 +43,14 @@ namespace Z3
         /// <summary>
         /// Convert the given C# type to a TypeSCript type.
         /// </summary>
-        /// <param name="classInfo">The C# type.</param>
+        /// <param name="memberInfo">The C# type.</param>
         /// <returns>The given type converted to TypeScript.</returns>
-        public override string ConvertType(MetadataClassInfo classInfo)
+        public override string ConvertType(MetadataMemberInfo memberInfo)
         {
-            var result = classInfo.Name!;
+            var isArray = memberInfo.IsArray || memberInfo.IsGeneric;
+            var result = memberInfo.ImplementedClass!.Name!;
 
-            var isArray = classInfo.IsArray || classInfo.IsGeneric;
-
-            if (classInfo.IsArray)
-            {
-                result = result[..^2];
-            }
-
-            if (classInfo.IsGeneric)
-            {
-                result = StripToBareType(result);
-            }
-
+            result = StripToBareType(result);
             if (IsStandardType(result))
             {
                 result = tsStandardTypes[BaseTypeConverter.csStandardTypes.IndexOf(result)];
@@ -85,7 +75,7 @@ namespace Z3
         /// <returns>The given type converted to a filename for TypeScript.</returns>
         public override string GetFileName(MetadataClassInfo classInfo)
         {
-            var csType = StripToBareType(ConvertType(classInfo));
+            var csType = StripToMinimalType(classInfo.Name!);
             return ToKebabCase(csType);
         }
 

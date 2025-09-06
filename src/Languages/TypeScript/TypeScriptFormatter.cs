@@ -130,7 +130,7 @@ namespace Z3
                     Output.WriteLine();
                     WriteXmlDocumentation(propertyInfo.XmlComment, 1);
 
-                    var type = Converter.ConvertType(propertyInfo.ImplementedClass!);
+                    var type = Converter.ConvertType(propertyInfo);
                     WriteIndent(1);
                     Output.Write($"{(propertyInfo.Visibility == Visibility.Public ? "public" : "protected")} ");
                     Output.Write($"{BaseTypeConverter.ToJSONCase(propertyInfo.Name!)}: {type}");
@@ -178,7 +178,7 @@ namespace Z3
                     }
                     else
                     {
-                        var type = null == fieldInfo.ImplementedClass ? fieldInfo.Type : Converter.ConvertType(fieldInfo.ImplementedClass!);
+                        var type = null == fieldInfo.ImplementedClass ? fieldInfo.Type : Converter.ConvertType(fieldInfo);
                         WriteIndent(1);
                         Output.Write($"{(fieldInfo.Visibility == Visibility.Public ? "public" : "protected")} ");
                         Output.Write($"{BaseTypeConverter.ToJSONCase(fieldInfo.Name!)}: {type}{(fieldInfo.IsArray ? "[]" : "")}");
