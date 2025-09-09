@@ -28,8 +28,6 @@
       "args": [
         "demo",
         "-a",
-        "-c",
-        "Zestien3.VariousNullableProperties",
         "-v",
         "Silent"
       ],
