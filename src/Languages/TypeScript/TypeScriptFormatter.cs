@@ -30,7 +30,7 @@ namespace Z3
         /// <param name="output">The output to which the type script code must be written.</param>
         public TypeScriptFormatter(MetadataAssemblyInfo assemblyInfo, TextWriter output) : base(assemblyInfo, output, new TypeScriptTypeConverter())
         {
-            IndentLength = 2;
+            IndentSize = 4;
         }
 
         protected override void WriteComment(string str, int indentLevel)

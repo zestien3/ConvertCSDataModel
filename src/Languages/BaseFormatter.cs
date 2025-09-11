@@ -16,7 +16,7 @@ namespace Z3
 
         protected List<string> ReferencedFiles { get; }
 
-        protected int IndentLength { get; set; }
+        protected int IndentSize { get; set; }
 
         /// <summary>
         /// The constructor of the abstract base class <see cref="BaseFormatter"/>.
@@ -31,7 +31,7 @@ namespace Z3
             Converter = converter;
 
             ReferencedFiles = [];
-            IndentLength = 4;
+            IndentSize = 4;
         }
 
         /// <summary>
@@ -145,7 +145,7 @@ namespace Z3
 
         public void WriteIndent(int level)
         {
-            Output.Write(new string(' ', IndentLength * level));
+            Output.Write(new string(' ', IndentSize * level));
         }
     }
 }
