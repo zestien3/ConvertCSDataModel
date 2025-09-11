@@ -135,25 +135,32 @@ namespace Z3
                     Output.Write($"{(propertyInfo.Visibility == Visibility.Public ? "public" : "protected")} ");
                     Output.Write($"{BaseTypeConverter.ToJSONCase(propertyInfo.Name!)}: {type}");
                     Output.Write($"{(propertyInfo.IsNullable ? " | null" : "")} = ");
-                    if (type.EndsWith("[]"))
+                    if (propertyInfo.IsNullable)
                     {
-                        Output.WriteLine("[];");
+                        Output.WriteLine("null;");
                     }
                     else
                     {
-                        if (Converter.IsStandardType(propertyInfo.Type!))
+                        if (type.EndsWith("[]"))
                         {
-                            Output.WriteLine($"{TypeScriptTypeConverter.tsStandardTypeValues[BaseTypeConverter.csStandardTypes.IndexOf(propertyInfo.ImplementedClass!.Name!)]};");
+                            Output.WriteLine("[];");
                         }
                         else
                         {
-                            if ((null != propertyInfo.ImplementedClass) && propertyInfo.ImplementedClass.IsEnum)
+                            if (Converter.IsStandardType(propertyInfo.Type!))
                             {
-                                Output.WriteLine($"{propertyInfo.ImplementedClass.Name}.{propertyInfo.ImplementedClass.Fields.First().Value.Name};");
+                                Output.WriteLine($"{TypeScriptTypeConverter.tsStandardTypeValues[BaseTypeConverter.csStandardTypes.IndexOf(propertyInfo.ImplementedClass!.Name!)]};");
                             }
                             else
                             {
-                                Output.WriteLine($"new {type}();");
+                                if ((null != propertyInfo.ImplementedClass) && propertyInfo.ImplementedClass.IsEnum)
+                                {
+                                    Output.WriteLine($"{propertyInfo.ImplementedClass.Name}.{propertyInfo.ImplementedClass.Fields.First().Value.Name};");
+                                }
+                                else
+                                {
+                                    Output.WriteLine($"new {type}();");
+                                }
                             }
                         }
                     }
@@ -183,25 +190,32 @@ namespace Z3
                         Output.Write($"{(fieldInfo.Visibility == Visibility.Public ? "public" : "protected")} ");
                         Output.Write($"{BaseTypeConverter.ToJSONCase(fieldInfo.Name!)}: {type}{(fieldInfo.IsArray ? "[]" : "")}");
                         Output.Write($"{(fieldInfo.IsNullable ? " | null" : "")} = ");
-                        if (fieldInfo.Type!.EndsWith("[]"))
+                        if (fieldInfo.IsNullable)
                         {
-                            Output.WriteLine("[];");
+                            Output.WriteLine("null;");
                         }
                         else
                         {
-                            if (Converter.IsStandardType(fieldInfo.Type!))
+                            if (fieldInfo.Type!.EndsWith("[]"))
                             {
-                                Output.WriteLine($"{TypeScriptTypeConverter.tsStandardTypeValues[BaseTypeConverter.csStandardTypes.IndexOf(fieldInfo.Type!)]};");
+                                Output.WriteLine("[];");
                             }
                             else
                             {
-                                if ((null != fieldInfo.ImplementedClass) && fieldInfo.ImplementedClass.IsEnum)
+                                if (Converter.IsStandardType(fieldInfo.Type!))
                                 {
-                                    Output.WriteLine($"{fieldInfo.ImplementedClass.Name}.{fieldInfo.ImplementedClass.Fields.First().Value.Name};");
+                                    Output.WriteLine($"{TypeScriptTypeConverter.tsStandardTypeValues[BaseTypeConverter.csStandardTypes.IndexOf(fieldInfo.Type!)]};");
                                 }
                                 else
                                 {
-                                    Output.WriteLine($"new {type}();");
+                                    if ((null != fieldInfo.ImplementedClass) && fieldInfo.ImplementedClass.IsEnum)
+                                    {
+                                        Output.WriteLine($"{fieldInfo.ImplementedClass.Name}.{fieldInfo.ImplementedClass.Fields.First().Value.Name};");
+                                    }
+                                    else
+                                    {
+                                        Output.WriteLine($"new {type}();");
+                                    }
                                 }
                             }
                         }
