@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using CommandLine;
+using Zestien3;
 
 namespace Z3
 {
@@ -43,8 +44,6 @@ namespace Z3
                     var reader = new StreamReader(stream);
                     Console.Out.WriteLine(reader.ReadToEnd());
 
-                    options.Languages = [Language.TypeScript];
-
                     if (0 == options.ClassNames!.Count())
                     {
                         options.AutoFind = true;
@@ -76,7 +75,7 @@ namespace Z3
                 {
                     foreach (var classInfo in assemblyInfo.ClassesByName.Values)
                     {
-                        if (classInfo.Attributes.ContainsKey(nameof(Zestien3.UseInFrontendAttribute)))
+                        if (classInfo.UseInFrontend.Count() > 0)
                         {
                             if (!classNames.Contains(classInfo.FullName))
                             {
@@ -94,27 +93,7 @@ namespace Z3
                     {
                         // For this class we do load more information.
                         classInfo.AllClassesLoaded(assemblyInfo, 2);
-                        foreach (var language in cmdLine.Languages!)
-                        {
-                            switch (language)
-                            {
-                                case Language.TypeScript:
-                                {
-                                    var fileName = TypeScriptFormatter.GetFileNameFromClass(classInfo);
-                                    if (!string.IsNullOrEmpty(cmdLine.OutputFolder))
-                                    {
-                                        var dir = Path.GetDirectoryName(Path.Combine(cmdLine.OutputFolder, fileName));
-                                        if (!Directory.Exists(dir!))
-                                        {
-                                            Directory.CreateDirectory(dir!);
-                                        }
-                                    }
-                                    using var writer = GetOutput(fileName);
-                                    (new TypeScriptFormatter(assemblyInfo, writer)).FormatClass(classInfo);
-                                    break;
-                                }
-                            }
-                        }
+                        LanguageFactory.TranslateClass(classInfo, cmdLine.OutputFolder);
                     }
                     else
                     {
@@ -124,30 +103,12 @@ namespace Z3
 
                 if (cmdLine is DemoOptions)
                 {
-                    foreach (var language in cmdLine.Languages!)
-                    {
-                        switch (language)
-                        {
-                            case Language.TypeScript:
-                                TypeScriptTypeConverter.DemoSerialization();
-                                break;
-                        }
-                    }
+                    // Here we show some demonstrations that might be useful to the user.
+
+                    // Show how asp.net core would serialize json.
+                    TypeScriptTypeConverter.DemoSerialization();
                 }
             }
-        }
-
-        private static TextWriter GetOutput(string fileName)
-        {
-            if (string.IsNullOrEmpty(cmdLine!.OutputFolder))
-            {
-                Console.Out.WriteLine();
-                Console.Out.WriteLine($"********** Output file would be {fileName} **********");
-                Console.Out.WriteLine();
-                return Console.Out;
-            }
-
-            return new StreamWriter(Path.Combine(cmdLine.OutputFolder, fileName), false);
         }
     }
 }

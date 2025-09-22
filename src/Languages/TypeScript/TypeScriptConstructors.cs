@@ -18,7 +18,7 @@ namespace Z3
             Formatter = formatter;
             Converter = converter;
             Output = output;
-            switch (ClassInfo.UseInFrontend.Constructor)
+            switch (ClassInfo!.UseInFrontend[Language.TypeScript].Constructor)
             {
                 case TSConstructorType.None:
                     break;

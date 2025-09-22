@@ -261,6 +261,17 @@ namespace Z3
         }
 
         /// <summary>
+        /// Convert the given string to be used as a label (Which looks like this).
+        /// </summary>
+        /// <param name="str">The string to convert.</param>
+        /// <returns>The PascalCase representation of the given string.</returns>
+        public static string ToLabelCase(string str)
+        {
+            var result = JoinWithCharacter(ToLowerCase(SplitCamelCasing(str)), ' ');
+            return char.ToUpper(result[0]) + result[1..];
+        }
+
+        /// <summary>
         /// Convert each string in the list to lowercase.
         /// </summary>
         /// <param name="strings">The list of strings to convert.</param>

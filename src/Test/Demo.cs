@@ -40,10 +40,22 @@ namespace Zestien3
     }
 
     /// <summary>
-    /// This attribute will create a TypeScript model from the class it is set on.
+    /// Enum to indicate the language(s) to which the classes should be converted.
     /// </summary>
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Enum)]
-    internal class UseInFrontendAttribute : Attribute
+    public enum Language
+    {
+        /// <summary>Translate the classes to TypeScript.</summary>
+        TypeScript,
+
+        /// <summary>Translate the classes to HTML.</summary>
+        HTML
+    }
+
+    /// <summary>
+    /// This attribute will translate the class it is set on.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Enum, AllowMultiple = true)]
+    public class UseInFrontendAttribute : Attribute
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="UseInFrontendAttribute"/> class.
@@ -51,13 +63,14 @@ namespace Zestien3
         public UseInFrontendAttribute() { }
 
         /// <summary>
-        /// The subfolder where the TypeScript file will be generated.
-        /// </summary>
-
-        /// <summary>
-        /// The subfolder where the TypeScript file will be generated.
+        /// The subfolder where the translated file will be generated.
         /// </summary>
         public string SubFolder { get; set; } = string.Empty;
+
+        /// <summary>
+        /// The Language(s) to which the class should be translated.
+        /// </summary>
+        public Language Language { get; set; }
 
         /// <summary>
         /// A constructor taking one parameter of the same type will be generated.
@@ -69,8 +82,8 @@ namespace Zestien3
     /// <summary>
     /// Enumeration class for the demo of this application
     /// </summary>
-    [UseInFrontend(SubFolder = "Demo\\Level1")]
-    public enum EnumDemo
+    [UseInFrontend(SubFolder = "Demo\\Level1", Language = Language.TypeScript)]
+    internal enum EnumDemo
     {
         /// <summary>
         /// EnumDemo First value
@@ -89,8 +102,9 @@ namespace Zestien3
     /// <remarks>
     /// It contains all available standard types.
     /// </remarks>
-    [UseInFrontend(SubFolder = "Demo")]
-    public class AllStandardTypes
+    [UseInFrontend(SubFolder = "Demo", Language = Language.TypeScript)]
+    [UseInFrontend(SubFolder = "Demo", Language = Language.HTML)]
+    internal class AllStandardTypes
     {
         /// <summary>
         /// Property of type bool
@@ -199,8 +213,8 @@ namespace Zestien3
     /// <remarks>
     /// It contains various array types.
     /// </remarks>
-    [UseInFrontend(SubFolder = "Demo")]
-    public class ArrayTypes
+    [UseInFrontend(SubFolder = "Demo", Language = Language.TypeScript)]
+    internal class ArrayTypes
     {
         /// <summary>
         /// Boolean list.
@@ -229,8 +243,8 @@ namespace Zestien3
     /// <remarks>
     /// This class contains private and protected member fields and properties.
     /// </remarks>
-    [UseInFrontend(SubFolder = "Demo")]
-    public class VariousMemberVisibilities
+    [UseInFrontend(SubFolder = "Demo", Language = Language.TypeScript)]
+    internal class VariousMemberVisibilities
     {
 #pragma warning disable CS0169
         private readonly int ThisShouldNotBeSerialized;
@@ -241,7 +255,7 @@ namespace Zestien3
         /// <summary>
         /// This is a protected member field and should be serialized.
         /// </summary>
-        protected int ThisShouldBeSerialized;
+        protected int ThisShouldBeSerialized = 0;
 
         /// <summary>
         /// This is a protected property and should be serialized.
@@ -255,8 +269,8 @@ namespace Zestien3
     /// <remarks>
     /// This class contains properties with different case formatting.
     /// </remarks>
-    [UseInFrontend(SubFolder = "Demo")]
-    public class VariousMemberNameCasings : VariousMemberVisibilities
+    [UseInFrontend(SubFolder = "Demo", Language = Language.TypeScript)]
+    internal class VariousMemberNameCasings : VariousMemberVisibilities
     {
         /// <summary>
         /// CamelCasing
@@ -305,8 +319,8 @@ namespace Zestien3
     /// <remarks>
     /// This class contains nullable properties.
     /// </remarks>
-    [UseInFrontend(SubFolder = "Demo")]
-    public class VariousNullableProperties
+    [UseInFrontend(SubFolder = "Demo", Language = Language.TypeScript)]
+    internal class VariousNullableProperties
     {
 #nullable enable
         /// <summary>

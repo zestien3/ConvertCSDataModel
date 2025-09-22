@@ -10,13 +10,12 @@ namespace Z3
         private TypeDefinition typeDef;
         private Dictionary<string, MetadataPropertyInfo> properties = [];
         private Dictionary<string, MetadataFieldInfo> fields = [];
-        private Dictionary<string, MetadataAttributeInfo> attributes = [];
 
         protected MetadataClassInfo(string type) : base(null, null)
         {
             Logger.LogDebug($"Undefined or anonymous class found: {type}");
 
-            UseInFrontend = new UseInFrontendAttribute();
+            UseInFrontend = new();
 
             ContainingAssembly = null;
             Name = type;
@@ -49,41 +48,42 @@ namespace Z3
                 var attribute = new MetadataAttributeInfo(reader.GetCustomAttribute(attributeHandle), Reader!);
                 if (!string.IsNullOrEmpty(attribute.Name))
                 {
-                    attributes[attribute.Name!] = attribute;
+                    ProcessFoundAttribute(attribute);
                     Logger.LogDebug($"Found attribute {attribute.Name} on class {Name}");
                 }
             }
+        }
 
-            if (attributes.TryGetValue("NullableContextAttribute", out var nca))
+        private void ProcessFoundAttribute(MetadataAttributeInfo attribute)
+        {
+            if (attribute.Name == "NullableContextAttribute")
             {
-                NullableContext = (byte)nca.FixedArguments[0].Value!;
+                NullableContext = (byte)attribute.FixedArguments[0].Value!;
             }
 
             // Get the UseInFrontendAttribute and store it.
-            if (attributes.TryGetValue(nameof(UseInFrontendAttribute), out var useInFrontend))
+            if (attribute.Name == nameof(UseInFrontendAttribute))
             {
-                if (!useInFrontend.NamedArguments.TryGetValue(nameof(UseInFrontendAttribute.SubFolder), out var subFolder))
+                if (!attribute.NamedArguments.TryGetValue(nameof(UseInFrontendAttribute.SubFolder), out var subFolder))
                 {
                     subFolder = new(nameof(UseInFrontendAttribute.SubFolder), CustomAttributeNamedArgumentKind.Property, "string", ".");
                 }
-                if (!useInFrontend.NamedArguments.TryGetValue(nameof(UseInFrontendAttribute.Constructor), out var constructor))
+                if (!attribute.NamedArguments.TryGetValue(nameof(UseInFrontendAttribute.Constructor), out var constructor))
                 {
                     constructor = new(nameof(UseInFrontendAttribute.Constructor), CustomAttributeNamedArgumentKind.Property, "int", 0);
                 }
+                if (!attribute.NamedArguments.TryGetValue(nameof(UseInFrontendAttribute.Language), out var language))
+                {
+                    throw new ArgumentException($"${nameof(UseInFrontendAttribute)} must have it's ${nameof(UseInFrontendAttribute.Language)} property set.");
+                }
 
-                UseInFrontend = new()
-                {
-                    Constructor = (TSConstructorType)((int)constructor.Value!),
-                    SubFolder = (string)subFolder.Value!
-                };
-            }
-            else
-            {
-                UseInFrontend = new()
-                {
-                    Constructor = TSConstructorType.None,
-                    SubFolder = "."
-                };
+                UseInFrontend[(Language)language.Value!] =
+                    new()
+                    {
+                        Constructor = (TSConstructorType)((int)constructor.Value!),
+                        SubFolder = (string)subFolder.Value!,
+                        Language = (Language)language.Value!
+                    };
             }
         }
 
@@ -179,9 +179,7 @@ namespace Z3
 
         public byte? NullableContext { get; private set; }
 
-        public UseInFrontendAttribute UseInFrontend { get; private set; }
-
-        public IReadOnlyDictionary<string, MetadataAttributeInfo> Attributes { get { return attributes.AsReadOnly(); } }
+        public Dictionary<Language, UseInFrontendAttribute> UseInFrontend { get; private set; } = [];
     }
 
     internal class MetadataClassInfoNotFound : MetadataClassInfo

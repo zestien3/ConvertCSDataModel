@@ -4,16 +4,10 @@ using CommandLine;
 
 namespace Z3
 {
-    internal enum Language
-    {
-        TypeScript
-    }
-
     internal interface Options
     {
         public bool AutoFind { get; set; }
         public string? AssemblyName { get; set; }
-        public IEnumerable<Language>? Languages { get; set; }
         public IEnumerable<string>? ClassNames { get; set; }
         public string? OutputFolder { get; set; }
         public VerbosityLevel Verbosity { get; set; }
@@ -27,9 +21,6 @@ namespace Z3
 
         [Option('f', "file", Required = false, HelpText = "The path to the Assembly which contains the class(es) to convert.")]
         public string? AssemblyName { get; set; } = Assembly.GetExecutingAssembly()!.Location;
-
-        [Option('l', "language", Required = false, HelpText = "The programming language(s) to convert to.")]
-        public IEnumerable<Language>? Languages { get; set; }
 
         [Option('c', "classes", Required = false, HelpText = "The name of the class(es) to convert (including the complete namespace). If omitted, -a is assumed.")]
         public IEnumerable<string>? ClassNames { get; set; }
@@ -49,9 +40,6 @@ namespace Z3
 
         [Option('f', "file", Required = true, HelpText = "The path to the Assembly which contains the class(es) to convert.")]
         public string? AssemblyName { get; set; }
-
-        [Option('l', "language", Required = true, HelpText = "The programming language(s) to convert to.")]
-        public IEnumerable<Language>? Languages { get; set; }
 
         [Option('c', "classes", Required = false, HelpText = "The name of the class(es) to convert (including the complete namespace). If omitted, Console.Out is used.")]
         public IEnumerable<string>? ClassNames { get; set; }

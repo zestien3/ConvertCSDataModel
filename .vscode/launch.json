@@ -11,9 +11,7 @@
         "-f",
         "D:/Data/Git/TimeTracker/BackEnd/bin/Debug/net8.0/TimeTracker.dll",
         "-o",
-        "D:/Data/Git/TimeTracker/FrontEnd/src/app/data",
-        "-l",
-        "TypeScript"
+        "D:/Data/Git/TimeTracker/FrontEnd/src/app/data"
       ],
       "cwd": "${workspaceFolder}",
       "stopAtEntry": false,

@@ -14,11 +14,12 @@ namespace Z3
         /// Used by the program to create the output filename.
         /// </remarks>
         /// <param name="classInfo">The MetadataClassInfo instance for which the file name name is required.</param>
+        /// <param name="subFolder">The subfolder in which the file should be created.</param>
         /// <returns>The file name to store the TypeScript representation of the given MetadataClassInfo.</returns>
-        public static string GetFileNameFromClass(MetadataClassInfo classInfo)
+        public static string GetFileNameFromClass(MetadataClassInfo classInfo, string subFolder)
         {
             var bareTypeName = BaseTypeConverter.StripToBareType(classInfo.Name!);
-            var result = Path.Combine(classInfo.UseInFrontend.SubFolder!, $"{BaseTypeConverter.ToKebabCase(bareTypeName)}.ts");
+            var result = Path.Combine(subFolder, $"{BaseTypeConverter.ToKebabCase(bareTypeName)}.ts");
             Logger.LogDebug($"Compiled filename vor {classInfo.Name!}: {result}");
             return result;
         }
@@ -28,23 +29,28 @@ namespace Z3
         /// </summary>
         /// <param name="assemblyInfo">The assembly for which we create the output.</param>
         /// <param name="output">The output to which the type script code must be written.</param>
-        public TypeScriptFormatter(MetadataAssemblyInfo assemblyInfo, TextWriter output) : base(assemblyInfo, output, new TypeScriptTypeConverter())
+        public TypeScriptFormatter(MetadataAssemblyInfo assemblyInfo, TextWriter output)
+            : base(assemblyInfo, output, new TypeScriptTypeConverter())
         {
             IndentSize = 4;
         }
 
         protected override void WriteComment(string str, int indentLevel)
         {
+            WriteIndent(indentLevel);
             Output.WriteLine($"// {str}");
         }
 
         protected override void WriteMultilineComment(IEnumerable<string> str, int indentLevel)
         {
+            WriteIndent(indentLevel);
             Output.WriteLine("/*");
             foreach (var s in str)
             {
+                WriteIndent(indentLevel + 1);
                 Output.WriteLine($" * {s}");
             }
+            WriteIndent(indentLevel);
             Output.WriteLine(" */");
         }
 
@@ -75,7 +81,7 @@ namespace Z3
             }
         }
 
-        protected override void WriteFileHeader(MetadataClassInfo classInfo)
+        protected override void WriteFileHeader()
         {
             // TypeScript does not have a file header.
         }
@@ -84,48 +90,51 @@ namespace Z3
         {
             if (AssemblyInfo.ClassesByName.TryGetValue(className, out var classInfo))
             {
-                var subFolder = ".\\" + classInfo.UseInFrontend.SubFolder!;
+                if (classInfo.UseInFrontend.ContainsKey(UseInFrontend!.Language))
+                {
+                    var subFolder = ".\\" + classInfo.UseInFrontend[UseInFrontend.Language].SubFolder!;
 
-                subFolder = Path.GetRelativePath(currentSubFolder, subFolder).Replace("\\", "/");
+                    subFolder = Path.GetRelativePath(currentSubFolder, subFolder).Replace("\\", "/");
 
-                string shortTypeName = className[(className.LastIndexOf('.') + 1)..];
-                Output.WriteLine($"import {{ {shortTypeName} }} from \"{subFolder}/{fileName}\";");
+                    string shortTypeName = className[(className.LastIndexOf('.') + 1)..];
+                    Output.WriteLine($"import {{ {shortTypeName} }} from \"{subFolder}/{fileName}\";");
+                }
             }
         }
 
-        protected override void OpenNamespace(MetadataClassInfo classInfo)
+        protected override void OpenNamespace()
         {
             // TypeScript does not support namespaces
         }
 
-        protected override void OpenClass(MetadataClassInfo classInfo)
+        protected override void OpenClass()
         {
-            if (classInfo.IsEnum)
+            if (ClassInfo!.IsEnum)
             {
-                Output.Write($"export enum {classInfo.Name!} ");
+                Output.Write($"export enum {ClassInfo.Name!} ");
             }
             else
             {
-                Output.Write($"export class {classInfo.Name!} ");
+                Output.Write($"export class {ClassInfo.Name!} ");
             }
 
-            if (null != classInfo.BaseType)
+            if (null != ClassInfo.BaseType)
             {
-                Output.Write($"extends {classInfo.BaseType.Name!} ");
+                Output.Write($"extends {ClassInfo.BaseType.Name!} ");
             }
             Output.WriteLine("{");
         }
 
-        protected override void WriteConstructor(MetadataClassInfo classInfo)
+        protected override void WriteConstructor()
         {
-            _ = new TypeScriptConstructors(classInfo, this, Converter, Output);
+            _ = new TypeScriptConstructors(ClassInfo!, this, Converter, Output);
         }
 
-        protected override void WriteProperties(MetadataClassInfo classInfo)
+        protected override void WriteProperties()
         {
-            if (classInfo.UseInFrontend.Constructor != TSConstructorType.AllMembers)
+            if (UseInFrontend!.Constructor != TSConstructorType.AllMembers)
             {
-                foreach (var propertyInfo in classInfo.Properties.Values)
+                foreach (var propertyInfo in ClassInfo!.Properties.Values)
                 {
                     Output.WriteLine();
                     WriteXmlDocumentation(propertyInfo.XmlComment, 1);
@@ -149,7 +158,8 @@ namespace Z3
                         {
                             if (Converter.IsStandardType(propertyInfo.Type!))
                             {
-                                Output.WriteLine($"{TypeScriptTypeConverter.tsStandardTypeValues[BaseTypeConverter.csStandardTypes.IndexOf(propertyInfo.ImplementedClass!.Name!)]};");
+                                Output.WriteLine(
+                                    $"{TypeScriptTypeConverter.tsStandardTypeValues[BaseTypeConverter.csStandardTypes.IndexOf(propertyInfo.ImplementedClass!.Name!)]};");
                             }
                             else
                             {
@@ -168,11 +178,11 @@ namespace Z3
             }
         }
 
-        protected override void WriteFields(MetadataClassInfo classInfo)
+        protected override void WriteFields()
         {
-            if (classInfo.UseInFrontend.Constructor != TSConstructorType.AllMembers)
+            if (UseInFrontend!.Constructor != TSConstructorType.AllMembers)
             {
-                foreach (var fieldInfo in classInfo.Fields.Values)
+                foreach (var fieldInfo in ClassInfo!.Fields.Values)
                 {
                     Output.WriteLine();
                     WriteXmlDocumentation(fieldInfo.XmlComment, 1);
@@ -224,12 +234,12 @@ namespace Z3
             }
         }
 
-        protected override void CloseClass(MetadataClassInfo classInfo)
+        protected override void CloseClass()
         {
             Output.WriteLine("}");
         }
 
-        protected override void CloseNamespace(MetadataClassInfo classInfo)
+        protected override void CloseNamespace()
         {
             // TypeScript does not support namespaces
         }
