@@ -132,20 +132,10 @@ namespace Z3
             var value = "[(value)]";
             var change = "";
 
-            if (info.Attributes.TryGetValue(nameof(DataTypeAttribute), out var dataTypeInfo))
+            if (type == "File")
             {
-                if ((dataTypeInfo.FixedArguments.Count > 0) &&
-                    (dataTypeInfo.FixedArguments[0].Type == typeof(DataType).FullName))
-                {
-                    switch ((DataType)dataTypeInfo.FixedArguments[0].Value!)
-                    {
-                        case DataType.Upload:
-                            type = "file";
-                            value = "(value)";
-                            change = " (change)=\"fileChanged($event)\"";
-                            break;
-                    }
-                }
+                value = "(value)";
+                change = " (change)=\"fileChanged($event)\"";
             }
 
             var label = BaseTypeConverter.ToLabelCase(info.Name!);

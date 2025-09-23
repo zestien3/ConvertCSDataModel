@@ -133,6 +133,8 @@ namespace Z3
             // There are certain attributes we need. Since we now which one,
             // we can hard code their type here. This is a bit of a hack.
             // TODO: Check how we can get the underlying type of the Enum.
+            // For now we don't use this attribute, but it might come in handy
+            // in the future.
             if (null == t)
             {
                 switch (type)

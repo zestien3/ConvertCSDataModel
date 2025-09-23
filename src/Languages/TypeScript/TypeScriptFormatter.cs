@@ -150,15 +150,6 @@ namespace Z3
             else
             {
                 var type = null == info.ImplementedClass ? info.Type! : Converter.ConvertType(info);
-                if (info.Attributes.TryGetValue(nameof(DataTypeAttribute), out var dataTypeInfo))
-                {
-                    switch ((DataType)dataTypeInfo.FixedArguments[0].Value!)
-                    {
-                        case DataType.Upload:
-                            type = "File";
-                            break;
-                    }
-                }
 
                 WriteIndent(1);
                 Output.Write($"{(info.Visibility == Visibility.Public ? "public" : "protected")} ");

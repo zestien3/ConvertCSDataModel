@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text.Json;
 
 namespace Z3
 {
@@ -14,8 +13,14 @@ namespace Z3
                                                                      "number", "number", "number", "number",
                                                                      "number", "number", "number", "number",
                                                                      "text", "", "", "", "",
-                                                                     "date", "date", "text", "Enum" };
-        public HTMLTypeConverter() { }
+                                                                     "date", "date", "text", "Enum", "file" };
+        public HTMLTypeConverter()
+        {
+            if (htmlInputTypes.Count != csStandardTypes.Count)
+            {
+                Logger.LogFatal($"The {nameof(TypeScriptFormatter)}.{nameof(htmlInputTypes)} array does not contain the correct number of entries.");
+            }
+        }
 
         /// <summary>
         /// Convert the given C# type to a TypeSCript type.
