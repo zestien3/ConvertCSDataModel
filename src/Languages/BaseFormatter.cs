@@ -77,7 +77,7 @@ namespace Z3
                     if (!ReferencedFiles.Contains(baseType))
                     {
                         ReferencedFiles.Add(baseType);
-                        WriteFileReference(baseType, Converter.GetFileName(ClassInfo.BaseType), UseInFrontend.SubFolder);
+                        WriteFileReference(baseType, Converter.GetFileNameForReference(ClassInfo.BaseType), UseInFrontend.SubFolder);
                     }
                 }
             }
@@ -95,7 +95,7 @@ namespace Z3
                         {
                             WriteFileReference(
                                 type,
-                                Converter.GetFileName(property.ImplementedClass!),
+                                Converter.GetFileNameForReference(property.ImplementedClass!),
                                 property.DefiningClass!.UseInFrontend[UseInFrontend.Language].SubFolder!);
                         }
                     }
@@ -115,7 +115,7 @@ namespace Z3
                         {
                             WriteFileReference(
                                 type,
-                                Converter.GetFileName(field.ImplementedClass!),
+                                Converter.GetFileNameForReference(field.ImplementedClass!),
                                 field.DefiningClass!.UseInFrontend[UseInFrontend.Language].SubFolder!);
                         }
                     }

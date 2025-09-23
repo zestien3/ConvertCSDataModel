@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text.Json;
 
 namespace Z3
@@ -73,7 +74,7 @@ namespace Z3
         /// </summary>
         /// <param name="classInfo">The C# type.</param>
         /// <returns>The given type converted to a filename for TypeScript.</returns>
-        public override string GetFileName(MetadataClassInfo classInfo)
+        public override string GetFileNameForReference(MetadataClassInfo classInfo)
         {
             var csType = StripToMinimalType(classInfo.Name!);
             return ToKebabCase(csType);
@@ -128,6 +129,23 @@ namespace Z3
                 MultipleUpperCaseAtEND = 0,
                 sOMEUpperCaseAfterTheFirstCharacter = 0
             });
+        }
+
+        /// <summary>
+        /// Return the file name to store the TypeScript representation of the given MetadataClassInfo.
+        /// </summary>
+        /// <remarks>
+        /// Used by the program to create the output filename.
+        /// </remarks>
+        /// <param name="classInfo">The MetadataClassInfo instance for which the file name name is required.</param>
+        /// <param name="subFolder">The subfolder in which the file should be created.</param>
+        /// <returns>The file name to store the TypeScript representation of the given MetadataClassInfo.</returns>
+        public static string GetFileNameFromClass(MetadataClassInfo classInfo, string subFolder)
+        {
+            var bareTypeName = BaseTypeConverter.StripToBareType(classInfo.Name!);
+            var result = Path.Combine(subFolder, $"{BaseTypeConverter.ToKebabCase(bareTypeName)}.ts");
+            Logger.LogDebug($"Compiled filename vor {classInfo.Name!}: {result}");
+            return result;
         }
     }
 }

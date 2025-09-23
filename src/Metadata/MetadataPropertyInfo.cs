@@ -44,7 +44,7 @@ namespace Z3
             return propertyDef.DecodeSignature<string, MetadataInfo>(MetadataSignatureTypeProvider.Instance, this).ReturnType;
         }
 
-        protected override CustomAttributeHandleCollection GetMemberProperties()
+        protected override CustomAttributeHandleCollection GetMemberAttributes()
         {
             return propertyDef.GetCustomAttributes();
         }

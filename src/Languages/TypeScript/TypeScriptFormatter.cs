@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
 using Zestien3;
@@ -7,23 +8,6 @@ namespace Z3
 {
     internal class TypeScriptFormatter : BaseFormatter
     {
-        /// <summary>
-        /// Return the file name to store the TypeScript representation of the given MetadataClassInfo.
-        /// </summary>
-        /// <remarks>
-        /// Used by the program to create the output filename.
-        /// </remarks>
-        /// <param name="classInfo">The MetadataClassInfo instance for which the file name name is required.</param>
-        /// <param name="subFolder">The subfolder in which the file should be created.</param>
-        /// <returns>The file name to store the TypeScript representation of the given MetadataClassInfo.</returns>
-        public static string GetFileNameFromClass(MetadataClassInfo classInfo, string subFolder)
-        {
-            var bareTypeName = BaseTypeConverter.StripToBareType(classInfo.Name!);
-            var result = Path.Combine(subFolder, $"{BaseTypeConverter.ToKebabCase(bareTypeName)}.ts");
-            Logger.LogDebug($"Compiled filename vor {classInfo.Name!}: {result}");
-            return result;
-        }
-
         /// <summary>
         /// Create an instance of the <see cref="TypeScriptFormatter"/> class.
         /// </summary>
@@ -136,44 +120,7 @@ namespace Z3
             {
                 foreach (var propertyInfo in ClassInfo!.Properties.Values)
                 {
-                    Output.WriteLine();
-                    WriteXmlDocumentation(propertyInfo.XmlComment, 1);
-
-                    var type = Converter.ConvertType(propertyInfo);
-                    WriteIndent(1);
-                    Output.Write($"{(propertyInfo.Visibility == Visibility.Public ? "public" : "protected")} ");
-                    Output.Write($"{BaseTypeConverter.ToJSONCase(propertyInfo.Name!)}: {type}");
-                    Output.Write($"{(propertyInfo.IsNullable ? " | null" : "")} = ");
-                    if (propertyInfo.IsNullable)
-                    {
-                        Output.WriteLine("null;");
-                    }
-                    else
-                    {
-                        if (type.EndsWith("[]"))
-                        {
-                            Output.WriteLine("[];");
-                        }
-                        else
-                        {
-                            if (Converter.IsStandardType(propertyInfo.Type!))
-                            {
-                                Output.WriteLine(
-                                    $"{TypeScriptTypeConverter.tsStandardTypeValues[BaseTypeConverter.csStandardTypes.IndexOf(propertyInfo.ImplementedClass!.Name!)]};");
-                            }
-                            else
-                            {
-                                if ((null != propertyInfo.ImplementedClass) && propertyInfo.ImplementedClass.IsEnum)
-                                {
-                                    Output.WriteLine($"{propertyInfo.ImplementedClass.Name}.{propertyInfo.ImplementedClass.Fields.First().Value.Name};");
-                                }
-                                else
-                                {
-                                    Output.WriteLine($"new {type}();");
-                                }
-                            }
-                        }
-                    }
+                    WriteMemberInfo(propertyInfo);
                 }
             }
         }
@@ -184,49 +131,64 @@ namespace Z3
             {
                 foreach (var fieldInfo in ClassInfo!.Fields.Values)
                 {
-                    Output.WriteLine();
-                    WriteXmlDocumentation(fieldInfo.XmlComment, 1);
+                    WriteMemberInfo(fieldInfo);
+                }
+            }
+        }
 
-                    if (fieldInfo.DefiningClass!.IsEnum)
+        private void WriteMemberInfo(MetadataMemberInfo info)
+        {
+            Output.WriteLine();
+            WriteXmlDocumentation(info.XmlComment, 1);
+
+            if (info.DefiningClass!.IsEnum)
+            {
+                WriteIndent(1);
+                Output.Write(info.Name);
+                Output.WriteLine((info == info.DefiningClass.Fields.Last().Value) ? "" : ",");
+            }
+            else
+            {
+                var type = null == info.ImplementedClass ? info.Type! : Converter.ConvertType(info);
+                if (info.Attributes.TryGetValue(nameof(DataTypeAttribute), out var dataTypeInfo))
+                {
+                    switch ((DataType)dataTypeInfo.FixedArguments[0].Value!)
                     {
-                        WriteIndent(1);
-                        Output.Write(fieldInfo.Name);
-                        Output.WriteLine((fieldInfo == fieldInfo.DefiningClass.Fields.Last().Value) ? "" : ",");
+                        case DataType.Upload:
+                            type = "File";
+                            break;
+                    }
+                }
+
+                WriteIndent(1);
+                Output.Write($"{(info.Visibility == Visibility.Public ? "public" : "protected")} ");
+                Output.Write($"{BaseTypeConverter.ToJSONCase(info.Name!)}: {type}{(info.IsArray ? "[]" : "")}");
+                Output.Write($"{(info.IsNullable ? " | null" : "")} = ");
+                if (info.IsNullable)
+                {
+                    Output.WriteLine("null;");
+                }
+                else
+                {
+                    if (type.EndsWith("[]"))
+                    {
+                        Output.WriteLine("[];");
                     }
                     else
                     {
-                        var type = null == fieldInfo.ImplementedClass ? fieldInfo.Type : Converter.ConvertType(fieldInfo);
-                        WriteIndent(1);
-                        Output.Write($"{(fieldInfo.Visibility == Visibility.Public ? "public" : "protected")} ");
-                        Output.Write($"{BaseTypeConverter.ToJSONCase(fieldInfo.Name!)}: {type}{(fieldInfo.IsArray ? "[]" : "")}");
-                        Output.Write($"{(fieldInfo.IsNullable ? " | null" : "")} = ");
-                        if (fieldInfo.IsNullable)
+                        if (Converter.IsStandardType(info.Type!))
                         {
-                            Output.WriteLine("null;");
+                            Output.WriteLine($"{TypeScriptTypeConverter.tsStandardTypeValues[BaseTypeConverter.csStandardTypes.IndexOf(info.Type!)]};");
                         }
                         else
                         {
-                            if (fieldInfo.Type!.EndsWith("[]"))
+                            if ((null != info.ImplementedClass) && info.ImplementedClass.IsEnum)
                             {
-                                Output.WriteLine("[];");
+                                Output.WriteLine($"{info.ImplementedClass.Name}.{info.ImplementedClass.Fields.First().Value.Name};");
                             }
                             else
                             {
-                                if (Converter.IsStandardType(fieldInfo.Type!))
-                                {
-                                    Output.WriteLine($"{TypeScriptTypeConverter.tsStandardTypeValues[BaseTypeConverter.csStandardTypes.IndexOf(fieldInfo.Type!)]};");
-                                }
-                                else
-                                {
-                                    if ((null != fieldInfo.ImplementedClass) && fieldInfo.ImplementedClass.IsEnum)
-                                    {
-                                        Output.WriteLine($"{fieldInfo.ImplementedClass.Name}.{fieldInfo.ImplementedClass.Fields.First().Value.Name};");
-                                    }
-                                    else
-                                    {
-                                        Output.WriteLine($"new {type}();");
-                                    }
-                                }
+                                Output.WriteLine($"new {type}();");
                             }
                         }
                     }

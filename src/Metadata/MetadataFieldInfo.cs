@@ -40,7 +40,7 @@ namespace Z3
             return fieldDef.DecodeSignature<string, MetadataInfo>(MetadataSignatureTypeProvider.Instance, this);
         }
 
-        protected override CustomAttributeHandleCollection GetMemberProperties()
+        protected override CustomAttributeHandleCollection GetMemberAttributes()
         {
             return fieldDef.GetCustomAttributes();
         }

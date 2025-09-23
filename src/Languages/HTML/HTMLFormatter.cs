@@ -1,28 +1,13 @@
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 
 namespace Z3
 {
     internal class HTMLFormatter : BaseFormatter
     {
-        /// <summary>
-        /// Return the file name to store the TypeScript representation of the given MetadataClassInfo.
-        /// </summary>
-        /// <remarks>
-        /// Used by the program to create the output filename.
-        /// </remarks>
-        /// <param name="classInfo">The MetadataClassInfo instance for which the file name name is required.</param>
-        /// <param name="subFolder">The subfolder in which the file should be created.</param>
-        /// <returns>The file name to store the TypeScript representation of the given MetadataClassInfo.</returns>
-        public static string GetFileNameFromClass(MetadataClassInfo classInfo, string subFolder)
-        {
-            var bareTypeName = BaseTypeConverter.StripToBareType(classInfo.Name!);
-            var result = Path.Combine(subFolder, $"app-{BaseTypeConverter.ToKebabCase(bareTypeName)}.html");
-            Logger.LogDebug($"Compiled filename vor {classInfo.Name!}: {result}");
-            return result;
-        }
-
         /// <summary>
         /// Create an instance of the <see cref="HTMLFormatter"/> class.
         /// </summary>
@@ -98,7 +83,22 @@ namespace Z3
 
         protected override void OpenClass()
         {
-            Output.WriteLine($"@if({BaseTypeConverter.ToJSONCase(ClassInfo!.Name!)}) {{");
+            var title = $"Edit {BaseTypeConverter.StripToMinimalName(ClassInfo!.Name!)}";
+            var className = BaseTypeConverter.ToJSONCase(ClassInfo!.Name!);
+            var baseClassName = null == ClassInfo!.BaseType ? "" : BaseTypeConverter.ToJSONCase(ClassInfo!.BaseType!.Name!);
+            var baseClassSelector = null == ClassInfo!.BaseType ? "" : BaseTypeConverter.StripToMinimalName(ClassInfo.BaseType!.Name!);
+
+            Output.WriteLine($"@if (showTitle) {{ <h4 i18n=\"generic|{title}\">{title}</h4> }}");
+            Output.WriteLine($"@if({className}) {{");
+            WriteIndent(1);
+            Output.WriteLine($"@if (showTitle) {{ <hr /> }}");
+
+            if (!string.IsNullOrEmpty(baseClassSelector))
+            {
+                WriteIndent(1);
+                Output.WriteLine($"<app-edit-{baseClassSelector} [{baseClassName}]=\"{className}\" [showTitle]=\"false\"></app-edit-{baseClassSelector}>");
+            }
+
             WriteIndent(1);
             Output.WriteLine("<div class=\"row\">");
             WriteIndent(2);
@@ -114,19 +114,7 @@ namespace Z3
         {
             foreach (var propertyInfo in ClassInfo!.Properties.Values)
             {
-                WriteIndent(3);
-                Output.WriteLine("<div class=\"row\">");
-                WriteIndent(4);
-                Output.WriteLine($"<label class=\"col-3\">{BaseTypeConverter.ToLabelCase(propertyInfo.Name!)}</label>");
-                WriteIndent(4);
-                Output.WriteLine("<div class=\"col-9\">");
-                WriteIndent(5);
-                Output.Write("<input class=\"form-control\" [(value)]=\"");
-                Output.WriteLine($"{BaseTypeConverter.ToJSONCase(ClassInfo!.Name!)}.{BaseTypeConverter.ToJSONCase(propertyInfo.Name!)}\" />");
-                WriteIndent(4);
-                Output.WriteLine("</div>");
-                WriteIndent(3);
-                Output.WriteLine("</div>");
+                WriteFieldOrProperty(propertyInfo);
             }
         }
 
@@ -134,14 +122,52 @@ namespace Z3
         {
             foreach (var fieldInfo in ClassInfo!.Fields.Values)
             {
-                WriteIndent(3);
-                Output.WriteLine("<div class=\"form-group\">");
-                WriteIndent(4);
-                Output.Write("<input class=\"form-control\" [(value)]=\"");
-                Output.WriteLine($"{BaseTypeConverter.ToJSONCase(ClassInfo!.Name!)}.{BaseTypeConverter.ToJSONCase(fieldInfo.Name!)}\">");
-                WriteIndent(3);
-                Output.WriteLine("</div>");
+                WriteFieldOrProperty(fieldInfo);
             }
+        }
+
+        private void WriteFieldOrProperty(MetadataMemberInfo info)
+        {
+            var type = Converter.ConvertType(info);
+            var value = "[(value)]";
+            var change = "";
+
+            if (info.Attributes.TryGetValue(nameof(DataTypeAttribute), out var dataTypeInfo))
+            {
+                if ((dataTypeInfo.FixedArguments.Count > 0) &&
+                    (dataTypeInfo.FixedArguments[0].Type == typeof(DataType).FullName))
+                {
+                    switch ((DataType)dataTypeInfo.FixedArguments[0].Value!)
+                    {
+                        case DataType.Upload:
+                            type = "file";
+                            value = "(value)";
+                            change = " (change)=\"fileChanged($event)\"";
+                            break;
+                    }
+                }
+            }
+
+            var label = BaseTypeConverter.ToLabelCase(info.Name!);
+
+            var fullName = $"{BaseTypeConverter.ToJSONCase(info.DefiningClass!.Name!)}.{BaseTypeConverter.ToJSONCase(info.Name!)}";
+            WriteIndent(3);
+            Output.WriteLine("<div class=\"row\">");
+            WriteIndent(4);
+            Output.WriteLine($"<label class=\"col-4\" i18n=\"edit|{label}\">{label}</label>");
+            WriteIndent(4);
+            Output.WriteLine("<div class=\"col-8\">");
+            WriteIndent(5);
+            Output.Write($"<input class=\"form-control\" {value}=\"{fullName}\"{change}");
+            if (!string.IsNullOrEmpty(type))
+            {
+                Output.Write($" type=\"{type}\"");
+            }
+            Output.WriteLine(" />");
+            WriteIndent(4);
+            Output.WriteLine("</div>");
+            WriteIndent(3);
+            Output.WriteLine("</div>");
         }
 
         protected override void CloseClass()
@@ -151,7 +177,26 @@ namespace Z3
             WriteIndent(1);
             Output.WriteLine("</div>");
             Output.WriteLine("}");
-        }
+
+            Output.WriteLine("@if (showTitle) {");
+            WriteIndent(1);
+            Output.WriteLine("<div class=\"row\">");
+            WriteIndent(2);
+            Output.WriteLine("<div class=\"col-12\">");
+            WriteIndent(3);
+            Output.WriteLine("<br/>");
+            WriteIndent(3);
+            Output.WriteLine("<br/>");
+            WriteIndent(3);
+            Output.WriteLine("<button type=\"button\" class=\"btn btn-danger\" (click)=\"clickedCancel()\" i18n=\"generic|Cancel\">Cancel</button>");
+            WriteIndent(3);
+            Output.WriteLine("<button type=\"button\" class=\"btn btn-success float-right\" (click)=\"clickedOK()\" i18n=\"generic|OK\">OK</button>");
+            WriteIndent(2);
+            Output.WriteLine("</div>");
+            WriteIndent(1);
+            Output.WriteLine("</div>");
+            Output.WriteLine("}");
+       }
 
         protected override void CloseNamespace()
         {

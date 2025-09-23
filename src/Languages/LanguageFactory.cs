@@ -19,14 +19,14 @@ namespace Z3
                 switch (useInFrontend.Language)
                 {
                     case Language.TypeScript:
-                        fileName = TypeScriptFormatter.GetFileNameFromClass(classInfo, useInFrontend.SubFolder);
+                        fileName = TypeScriptTypeConverter.GetFileNameFromClass(classInfo, useInFrontend.SubFolder);
                         {
                             using TextWriter writer = GetTextWriter(outputFolder, fileName);
                             new TypeScriptFormatter(classInfo.ContainingAssembly!, writer).FormatClass(classInfo, useInFrontend);
                         }
                         break;
                     case Language.HTML:
-                        fileName = HTMLFormatter.GetFileNameFromClass(classInfo, useInFrontend.SubFolder);
+                        fileName = HTMLTypeConverter.GetFileNameFromClass(classInfo, useInFrontend.SubFolder);
                         {
                             using TextWriter writer = GetTextWriter(outputFolder, fileName);
                             new HTMLFormatter(classInfo.ContainingAssembly!, writer).FormatClass(classInfo, useInFrontend);

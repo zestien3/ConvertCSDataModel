@@ -7,6 +7,7 @@
 //       using it much easier to read.
 
 using System;
+using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -128,32 +129,45 @@ namespace Z3
             // Type.GetType can find types in the current executing assembly and
             // mscorlib.dll/System.Private.CoreLib.dll.
             var t = Type.GetType(type, false);
-            if ((null != t) && (null != t.BaseType))
+
+            // There are certain attributes we need. Since we now which one,
+            // we can hard code their type here. This is a bit of a hack.
+            // TODO: Check how we can get the underlying type of the Enum.
+            if (null == t)
             {
-                if (t.BaseType.FullName == typeof(SByte).FullName)
-                    return PrimitiveTypeCode.SByte;
-
-                if (t.BaseType.FullName == typeof(Int16).FullName)
-                    return PrimitiveTypeCode.Int16;
-
-                if (t.BaseType.FullName == typeof(Int32).FullName)
-                    return PrimitiveTypeCode.Int32;
-
-                if (t.BaseType.FullName == typeof(Int64).FullName)
-                    return PrimitiveTypeCode.Int64;
-
-                if (t.BaseType.FullName == typeof(Byte).FullName)
-                    return PrimitiveTypeCode.Byte;
-
-                if (t.BaseType.FullName == typeof(UInt16).FullName)
-                    return PrimitiveTypeCode.UInt16;
-
-                if (t.BaseType.FullName == typeof(UInt32).FullName)
-                    return PrimitiveTypeCode.UInt32;
-
-                if (t.BaseType.FullName == typeof(UInt64).FullName)
-                    return PrimitiveTypeCode.UInt64;
+                switch (type)
+                {
+                    case "System.ComponentModel.DataAnnotations.DataType":
+                        return PrimitiveTypeCode.Int32;
+                }
             }
+
+            if ((null != t) && (null != t.BaseType))
+                {
+                    if (t.BaseType.FullName == typeof(SByte).FullName)
+                        return PrimitiveTypeCode.SByte;
+
+                    if (t.BaseType.FullName == typeof(Int16).FullName)
+                        return PrimitiveTypeCode.Int16;
+
+                    if (t.BaseType.FullName == typeof(Int32).FullName)
+                        return PrimitiveTypeCode.Int32;
+
+                    if (t.BaseType.FullName == typeof(Int64).FullName)
+                        return PrimitiveTypeCode.Int64;
+
+                    if (t.BaseType.FullName == typeof(Byte).FullName)
+                        return PrimitiveTypeCode.Byte;
+
+                    if (t.BaseType.FullName == typeof(UInt16).FullName)
+                        return PrimitiveTypeCode.UInt16;
+
+                    if (t.BaseType.FullName == typeof(UInt32).FullName)
+                        return PrimitiveTypeCode.UInt32;
+
+                    if (t.BaseType.FullName == typeof(UInt64).FullName)
+                        return PrimitiveTypeCode.UInt64;
+                }
 
             MetadataClassInfo? runtimeType = TypeResolver(type.Replace('/', '+'));
 

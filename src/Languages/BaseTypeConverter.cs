@@ -52,7 +52,7 @@ namespace Z3
         /// </summary>
         /// <param name="classInfo">The C# type.</param>
         /// <returns>The given type converted to a filename for the language this converter is designed for.</returns>
-        public abstract string GetFileName(MetadataClassInfo classInfo);
+        public abstract string GetFileNameForReference(MetadataClassInfo classInfo);
 
         /// <summary>
         /// Returns true if the given C# type is a standard type for the language to convert to.
@@ -97,6 +97,21 @@ namespace Z3
             }
 
             return csType;
+        }
+
+        /// <summary>
+        /// Convert the given string to be used as a label (Which looks like this).
+        /// </summary>
+        /// <param name="str">The string to convert.</param>
+        /// <returns>The PascalCase representation of the given string.</returns>
+        public static string StripToMinimalName(string str)
+        {
+            var parts = ToLowerCase(SplitCamelCasing(str));
+            parts.Remove("model");
+            parts.Remove("data");
+            parts.Remove("edit");
+            parts.Remove("view");
+            return JoinWithCharacter(parts, ' ');
         }
 
         /// <summary>
@@ -276,7 +291,7 @@ namespace Z3
         /// </summary>
         /// <param name="strings">The list of strings to convert.</param>
         /// <returns>A list of the same strings as in the given list where every string is in lowercase.</returns>
-        private static List<string> ToLowerCase(List<string> strings)
+        protected static List<string> ToLowerCase(List<string> strings)
         {
             var result = new List<string>();
             foreach (var s in strings)
@@ -291,7 +306,7 @@ namespace Z3
         /// </summary>
         /// <param name="strings">The list of strings to convert.</param>
         /// <returns>A list of the same strings as in the given list where every string is in uppercase.</returns>
-        private static List<string> ToUpperCase(List<string> strings)
+        protected static List<string> ToUpperCase(List<string> strings)
         {
             var result = new List<string>();
             foreach (var s in strings)
@@ -306,7 +321,7 @@ namespace Z3
         /// </summary>
         /// <param name="strings">The list of strings to convert.</param>
         /// <returns>A list of the same strings as in the given list where every string is in lowercase except for its first letter which is in uppercase.</returns>
-        private static List<string> OneUpperRestLowerCase(List<string> strings)
+        protected static List<string> OneUpperRestLowerCase(List<string> strings)
         {
             var result = new List<string>();
             foreach (var s in strings)
@@ -325,7 +340,7 @@ namespace Z3
         /// <param name="parts">The list of strings to join.</param>
         /// <param name="filler">The filler character to add in between the string parts.</param>
         /// <returns>A joined string of all the string parts with filler characters in between the parts.</returns>
-        private static string JoinWithCharacter(List<string> parts, char filler)
+        protected static string JoinWithCharacter(List<string> parts, char filler)
         {
             var result = new StringBuilder();
             var start = true;

@@ -12,7 +12,7 @@ namespace Z3
 
         protected abstract string DecodeMemberSignature();
 
-        protected abstract CustomAttributeHandleCollection GetMemberProperties();
+        protected abstract CustomAttributeHandleCollection GetMemberAttributes();
 
         public override void AllClassesLoaded(MetadataInfo? metadataInfo, int depthToLoad)
         {
@@ -60,8 +60,8 @@ namespace Z3
                         // We are going to look for Custom Attributes.
                         // For now we are only interested in JsonIgnoreAttribute
                         // and NullableAttribute.
-                        var propAttributes = GetMemberProperties();
-                        foreach (var attributeHandle in propAttributes)
+                        var memberAttributes = GetMemberAttributes();
+                        foreach (var attributeHandle in memberAttributes)
                         {
                             var attribute = Reader!.GetCustomAttribute(attributeHandle);
                             var customAttribute = new MetadataAttributeInfo(attribute, Reader);

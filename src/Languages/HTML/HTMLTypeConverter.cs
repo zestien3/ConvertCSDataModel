@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text.Json;
 
 namespace Z3
@@ -9,36 +10,12 @@ namespace Z3
     /// </summary>
     internal class HTMLTypeConverter : BaseTypeConverter
     {
-        public static readonly List<string> tsStandardTypes = new() { "void", "boolean", "number", "number", "number",
-                                                                      "number", "number", "number", "number",
-                                                                      "number", "number", "number", "number",
-                                                                      "string", "<TYPEDREFERENCE>", "<INTPTR>", "<UINTPTR>",
-                                                                      "unknown", "Date", "Date", "string",
-                                                                      "Enum" };
-
-        public static readonly List<string> tsStandardTypeValues = new() { "null", "false", "0", "0", "0",
-                                                                           "0", "0", "0", "0",
-                                                                           "0", "0", "0", "0",
-                                                                           "\"\"", "<TYPEDREFERENCE>", "<INTPTR>", "<UINTPTR>",
-                                                                           "undefined", "new Date()", "new Date()", "\"00000000-0000-0000-0000-000000000000\"",
-                                                                           "0" };
-
-        private static readonly List<string> tsGenericArrayTypes = new() { BaseTypeConverter.GetGenericType(typeof(List<int>).FullName!),
-                                                                           BaseTypeConverter.GetGenericType(typeof(IReadOnlyList<int>).FullName!),
-                                                                           BaseTypeConverter.GetGenericType(typeof(IList<int>).FullName!) };
-
-        public HTMLTypeConverter()
-        {
-            if (tsStandardTypes.Count != csStandardTypes.Count)
-            {
-                Logger.LogFatal($"The {nameof(TypeScriptFormatter)}.{nameof(tsStandardTypes)} array does not contain the correct number of entries.");
-            }
-
-            if (tsStandardTypeValues.Count != csStandardTypes.Count)
-            {
-                Logger.LogFatal($"The {nameof(TypeScriptFormatter)}.{nameof(tsStandardTypeValues)} array does not contain the correct number of entries.");
-            }
-        }
+        public static readonly List<string> htmlInputTypes = new() { "", "checkbox", "number", "number", "",
+                                                                     "number", "number", "number", "number",
+                                                                     "number", "number", "number", "number",
+                                                                     "text", "", "", "", "",
+                                                                     "date", "date", "text", "Enum" };
+        public HTMLTypeConverter() { }
 
         /// <summary>
         /// Convert the given C# type to a TypeSCript type.
@@ -47,25 +24,14 @@ namespace Z3
         /// <returns>The given type converted to TypeScript.</returns>
         public override string ConvertType(MetadataMemberInfo memberInfo)
         {
-            var isArray = memberInfo.IsArray || memberInfo.IsGeneric;
-            var result = memberInfo.ImplementedClass!.Name!;
-
-            result = StripToBareType(result);
-            if (IsStandardType(result))
+            var csType = StripToBareType(memberInfo.Type!);
+            var index = BaseTypeConverter.csStandardTypes.IndexOf(csType);
+            if (-1 != index)
             {
-                result = tsStandardTypes[BaseTypeConverter.csStandardTypes.IndexOf(result)];
-            }
-            else
-            {
-                result = result[(result.LastIndexOf('.') + 1)..];
+                return htmlInputTypes[index];
             }
 
-            if (isArray)
-            {
-                result += "[]";
-            }
-
-            return result;
+            return "";
         }
 
         /// <summary>
@@ -73,10 +39,9 @@ namespace Z3
         /// </summary>
         /// <param name="classInfo">The C# type.</param>
         /// <returns>The given type converted to a filename for TypeScript.</returns>
-        public override string GetFileName(MetadataClassInfo classInfo)
+        public override string GetFileNameForReference(MetadataClassInfo classInfo)
         {
-            var csType = StripToMinimalType(classInfo.Name!);
-            return ToKebabCase(csType);
+            return string.Empty;
         }
 
         /// <summary>
@@ -90,44 +55,40 @@ namespace Z3
             var index = BaseTypeConverter.csStandardTypes.IndexOf(csType);
             if (-1 != index)
             {
-                return !string.IsNullOrEmpty(tsStandardTypes[index]);
+                return !string.IsNullOrEmpty(htmlInputTypes[index]);
             }
 
             return false;
         }
 
         /// <summary>
-        /// Demonstrate how .NET itself would convert property names when serializing.
+        /// Return the file name to store the HTML representation of the given MetadataClassInfo.
         /// </summary>
         /// <remarks>
-        /// This method will write some name conversion results to the console.
-        /// Examples are ALLUPPERCASE, CamelCase, pascalCase, PARTIALUpperCase, PartialUPPERCASEIntheMiddle, PartialUpperCaseAtEND.
+        /// Used by the program to create the output filename.
         /// </remarks>
-        public static void DemoSerialization()
+        /// <param name="classInfo">The MetadataClassInfo instance for which the file name name is required.</param>
+        /// <param name="subFolder">The subfolder in which the file should be created.</param>
+        /// <returns>The file name to store the TypeScript representation of the given MetadataClassInfo.</returns>
+        public static string GetFileNameFromClass(MetadataClassInfo classInfo, string subFolder)
         {
-            void ConvertTypeToJson(object o)
+            var nameParts = ToLowerCase(SplitCamelCasing(classInfo.Name!));
+            nameParts.Remove("model");
+            nameParts.Remove("data");
+            nameParts.Remove("component");
+            if (nameParts.Remove("view"))
             {
-                // These seem to be the serializer options used in a .net core web application.
-                // From what we see here, the name of a variable is formatted with the following rules in that order:
-                // If the name does not start with an uppercase character it is not changed.
-                // If the name consists of all uppercase characters, they are all converted to lowercase.
-                // If the name starts with an uppercase character, that character is converted to lowercase.
-                // If the name starts with multiple uppercase characters, they are all but the last converted to lowercase.
-                JsonSerializerOptions options = new(JsonSerializerDefaults.Web);
-                Console.Out.WriteLine(JsonSerializer.Serialize(o, options));
+                nameParts.Insert(0, "view");
+            }
+            if (nameParts.Remove("edit"))
+            {
+                nameParts.Insert(0, "edit");
             }
 
-            ConvertTypeToJson(new
-            {
-                CamelCase = 0,
-                pascalCase = 0,
-                snake_case = 0,
-                ALLUPPERCASE = 0,
-                MULTIPLEUpperCaseAtBegin = 0,
-                MultipleUPPERCASEIntheMiddle = 0,
-                MultipleUpperCaseAtEND = 0,
-                sOMEUpperCaseAfterTheFirstCharacter = 0
-            });
+            var fileName = $"{JoinWithCharacter(nameParts, '-')}.component.html";
+            var result = Path.Combine(subFolder, fileName);
+            Logger.LogDebug($"Compiled filename vor {classInfo.Name!}: {result}");
+            return result;
         }
     }
 }
