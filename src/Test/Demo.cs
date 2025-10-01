@@ -80,6 +80,28 @@ namespace Zestien3
     }
 
     /// <summary>
+    /// This attribute defines the value of a parameter used when calling the base class constructor.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
+    internal class FixedParameterValueAttribute : Attribute
+    {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="FixedParameterValueAttribute"/> class.
+        /// </summary>
+        public FixedParameterValueAttribute() { }
+
+        /// <summary>
+        /// The name of the parameter for which we want to set a fixed value.
+        /// </summary>
+        public string Name { get; set; } = string.Empty;
+
+        /// <summary>
+        /// The value of the parameter for which we want to set a fixed value.
+        /// </summary>
+        public string Value { get; set; } = string.Empty;
+    }
+
+    /// <summary>
     /// Enumeration class for the demo of this application
     /// </summary>
     [UseInFrontend(SubFolder = "Demo\\Level1", Language = Language.TypeScript)]

@@ -31,7 +31,7 @@ namespace Z3
             Output.WriteLine("/*");
             foreach (var s in str)
             {
-                WriteIndent(indentLevel + 1);
+                WriteIndent(indentLevel);
                 Output.WriteLine($" * {s}");
             }
             WriteIndent(indentLevel);

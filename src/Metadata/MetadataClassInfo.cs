@@ -85,6 +85,16 @@ namespace Z3
                         Language = (Language)language.Value!
                     };
             }
+            if (attribute.Name == nameof(FixedParameterValueAttribute))
+            {
+                if (attribute.NamedArguments.TryGetValue(nameof(FixedParameterValueAttribute.Name), out var name))
+                {
+                    if (attribute.NamedArguments.TryGetValue(nameof(FixedParameterValueAttribute.Value), out var value))
+                    {
+                        FixedConstructionParameters[(string)name.Value!] = (string)value.Value!;
+                    }
+                }
+            }
         }
 
         public override void AllClassesLoaded(MetadataInfo? metadataInfo, int depthToLoad)
@@ -96,25 +106,25 @@ namespace Z3
                     switch (typeDef.BaseType.Kind)
                     {
                         case HandleKind.TypeDefinition:
-                        {
-                            var baseType = Reader!.GetTypeDefinition((TypeDefinitionHandle)typeDef.BaseType);
-                            BaseTypeFullName = Reader.GetString(baseType.Namespace) + "." + Reader.GetString(baseType.Name);
-                            BaseType = assemblyInfo.ClassesByName[BaseTypeFullName];
-                            break;
-                        }
+                            {
+                                var baseType = Reader!.GetTypeDefinition((TypeDefinitionHandle)typeDef.BaseType);
+                                BaseTypeFullName = Reader.GetString(baseType.Namespace) + "." + Reader.GetString(baseType.Name);
+                                BaseType = assemblyInfo.ClassesByName[BaseTypeFullName];
+                                break;
+                            }
                         case HandleKind.TypeReference:
-                        {
-                            var baseType = Reader!.GetTypeReference((TypeReferenceHandle)typeDef.BaseType);
-                            BaseTypeFullName = Reader.GetString(baseType.Namespace) + "." + Reader.GetString(baseType.Name);
-                            IsEnum = BaseTypeFullName == "System.Enum";
-                            break;
-                        }
+                            {
+                                var baseType = Reader!.GetTypeReference((TypeReferenceHandle)typeDef.BaseType);
+                                BaseTypeFullName = Reader.GetString(baseType.Namespace) + "." + Reader.GetString(baseType.Name);
+                                IsEnum = BaseTypeFullName == "System.Enum";
+                                break;
+                            }
                         case HandleKind.TypeSpecification:
-                        {
-                            // I guess this is very likely a anonymous class.
-                            BaseTypeFullName = "Anonymous class";
-                            break;
-                        }
+                            {
+                                // I guess this is very likely a anonymous class.
+                                BaseTypeFullName = "Anonymous class";
+                                break;
+                            }
                         default:
                             BaseTypeFullName = typeDef.BaseType.Kind.ToString();
                             break;
@@ -180,6 +190,8 @@ namespace Z3
         public byte? NullableContext { get; private set; }
 
         public Dictionary<Language, UseInFrontendAttribute> UseInFrontend { get; private set; } = [];
+        
+        public Dictionary<string, string> FixedConstructionParameters { get; private set; } = [];
     }
 
     internal class MetadataClassInfoNotFound : MetadataClassInfo
