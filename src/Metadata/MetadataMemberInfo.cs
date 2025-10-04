@@ -1,18 +1,97 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Reflection.Metadata;
 
 namespace Z3
 {
-    internal abstract class MetadataMemberInfo : MetadataInfo
+    internal class MetadataMemberInfo : MetadataInfo
     {
         protected Dictionary<string, MetadataAttributeInfo> attributes = [];
 
-        public MetadataMemberInfo(MetadataReader reader, XmlDocumentationFile? xmlDoc) : base(reader, xmlDoc) { }
+        private readonly PropertyDefinition propertyDef;
 
-        protected abstract string DecodeMemberSignature();
+        private readonly FieldDefinition fieldDef;
 
-        protected abstract CustomAttributeHandleCollection GetMemberAttributes();
+        private readonly bool isProperty;
+
+        public MetadataMemberInfo(PropertyDefinition propertyDefinition, MetadataClassInfo classInfo, MetadataReader reader, XmlDocumentationFile? xmlDoc) : base(reader, xmlDoc)
+        {
+            isProperty = true;
+            propertyDef = propertyDefinition;
+            if (!propertyDef.GetAccessors().Getter.IsNil)
+            {
+                var getter = Reader!.GetMethodDefinition(propertyDef.GetAccessors().Getter);
+                switch (getter.Attributes & MethodAttributes.MemberAccessMask)
+                {
+                    case MethodAttributes.PrivateScope:
+                    case MethodAttributes.Private:
+                        Visibility = Visibility.Private;
+                        break;
+                    case MethodAttributes.FamANDAssem:
+                    case MethodAttributes.Family:
+                    case MethodAttributes.FamORAssem:
+                        Visibility = Visibility.Protected;
+                        break;
+                    case MethodAttributes.Assembly:
+                    case MethodAttributes.Public:
+                        Visibility = Visibility.Public;
+                        break;
+                }
+            }
+
+            Name = Reader!.GetString(propertyDef.Name);
+            DefiningClass = classInfo;
+
+            XmlMemberName = $"P:{classInfo.FullName}.{Name}";
+        }
+
+        public MetadataMemberInfo(FieldDefinition fieldDefinition, MetadataClassInfo classInfo, MetadataReader reader, XmlDocumentationFile? xmlDoc) : base(reader, xmlDoc)
+        {
+            isProperty = false;
+            fieldDef = fieldDefinition;
+            switch (fieldDef.Attributes & FieldAttributes.FieldAccessMask)
+            {
+                case FieldAttributes.PrivateScope:
+                case FieldAttributes.Private:
+                    Visibility = Visibility.Private;
+                    break;
+                case FieldAttributes.FamANDAssem:
+                case FieldAttributes.Family:
+                case FieldAttributes.FamORAssem:
+                    Visibility = Visibility.Protected;
+                    break;
+                case FieldAttributes.Assembly:
+                case FieldAttributes.Public:
+                    Visibility = Visibility.Public;
+                    break;
+            }
+
+            Name = Reader!.GetString(fieldDef.Name);
+            DefiningClass = classInfo;
+
+            XmlMemberName = $"F:{classInfo.FullName}.{Name}";
+        }
+
+        protected string DecodeMemberSignature()
+        {
+            if (isProperty)
+            {
+                return propertyDef.DecodeSignature<string, MetadataInfo>(MetadataSignatureTypeProvider.Instance, this).ReturnType;
+            }
+
+            return fieldDef.DecodeSignature<string, MetadataInfo>(MetadataSignatureTypeProvider.Instance, this);
+        }
+
+        protected CustomAttributeHandleCollection GetMemberAttributes()
+        {
+            if (isProperty)
+            {
+                return propertyDef.GetCustomAttributes();
+            }
+
+            return fieldDef.GetCustomAttributes();
+        }
 
         public override void AllClassesLoaded(MetadataInfo? metadataInfo, int depthToLoad)
         {

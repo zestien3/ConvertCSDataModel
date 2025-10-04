@@ -19,6 +19,9 @@ namespace Z3
         {
             if (!allLoadedAssemblies.ContainsKey(assemblyName))
             {
+                // Before we process the assembly, we first create an entry in the dictionary.
+                // This way we can detect a circular assembly reference, which we cannot handle now.
+                // Not even sure this is possible and don't feel like diving into it for now.
                 allLoadedAssemblies[assemblyName] = null;
                 allLoadedAssemblies[assemblyName] = new MetadataAssemblyInfo(assemblyName, 1);
             }
@@ -71,14 +74,14 @@ namespace Z3
             if (Reader.GetString(typeDef.Name).StartsWith("<>"))
                 return;
 
-            // If it's BaseType is null, it is probably not something we are interested in
+            // If it's BaseType is null, it is probably not something we are interested in.
             if (typeDef.BaseType.IsNil)
                 return;
 
-            var typeInfo = new MetadataClassInfo(this, typeDef, Reader, XmlDoc);
+            var classInfo = new MetadataClassInfo(this, typeDef, Reader, XmlDoc);
 
-            AddClassToAssembly(typeInfo);
-            classesByHandle[typeDefHandle] = typeInfo;
+            AddClassToAssembly(classInfo);
+            classesByHandle[typeDefHandle] = classInfo;
 
             // Add any nested classes to the list as well.
             // We need to do this after the class itself has been added to the lists,

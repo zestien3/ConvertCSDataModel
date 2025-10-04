@@ -7,9 +7,7 @@
       "preLaunchTask": "build",
       "program": "${workspaceFolder}/bin/Debug/net8.0/ConvertCSDataModel.dll",
       "args": [
-        "-c",
-        "TimeTracker.Models.BasicResponseModel",
-        "TimeTracker.Models.OKResponseModel",
+        "-a",
         "-f",
         "D:/Data/Git/TimeTracker/BackEnd/bin/Debug/net8.0/TimeTracker.dll",
         "-o",

@@ -87,12 +87,22 @@ namespace Z3
 
                 foreach (var className in classNames)
                 {
-                    Logger.LogMessage($"Processing class {className}");
 
                     if (assemblyInfo!.ClassesByName.TryGetValue(className, out var classInfo))
                     {
                         // For this class we do load more information.
                         classInfo.AllClassesLoaded(assemblyInfo, 2);
+                    }
+                    else
+                    {
+                        Logger.LogMessage($"Could not find class {className}. Did you include the full namespace?");
+                    }
+                }
+
+                foreach (var className in classNames)
+                {
+                    if (assemblyInfo!.ClassesByName.TryGetValue(className, out var classInfo))
+                    {
                         LanguageFactory.TranslateClass(classInfo, cmdLine.OutputFolder);
                     }
                     else

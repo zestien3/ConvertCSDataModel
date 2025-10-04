@@ -111,29 +111,17 @@ namespace Z3
 
         protected override void WriteConstructor()
         {
-            _ = new TypeScriptConstructors(ClassInfo!, this, Converter, Output);
-        }
-
-        protected override void WriteProperties()
-        {
-            if (UseInFrontend!.Constructor != TSConstructorType.AllMembers)
+            if (new TypeScriptConstructors(ClassInfo!, this, Converter, Output).CreateConstructor())
             {
-                foreach (var propertyInfo in ClassInfo!.Properties.Values)
-                {
-                    WriteMemberInfo(propertyInfo);
-                }
+                WriteMemberInfo(ClassInfo!.Members[0]);
             }
         }
 
-        protected override void WriteFields()
+        protected override void WriteMembers()
         {
-            if (UseInFrontend!.Constructor != TSConstructorType.AllMembers)
-            {
-                foreach (var fieldInfo in ClassInfo!.Fields.Values)
-                {
-                    WriteMemberInfo(fieldInfo);
-                }
-            }
+            // In TypeScript we only have max 1 member to declare, the rest is declared in the constructor.
+            // So since we only now if we need to create that single member while creating the constructor,
+            // we will generate the member there if required.
         }
 
         private void WriteMemberInfo(MetadataMemberInfo info)
@@ -145,7 +133,7 @@ namespace Z3
             {
                 WriteIndent(1);
                 Output.Write(info.Name);
-                Output.WriteLine((info == info.DefiningClass.Fields.Last().Value) ? "" : ",");
+                Output.WriteLine((info == info.DefiningClass.Members.Last()) ? "" : ",");
             }
             else
             {
@@ -154,36 +142,9 @@ namespace Z3
                 WriteIndent(1);
                 Output.Write($"{(info.Visibility == Visibility.Public ? "public" : "protected")} ");
                 Output.Write($"{BaseTypeConverter.ToJSONCase(info.Name!)}: {type}{(info.IsArray ? "[]" : "")}");
-                Output.Write($"{(info.IsNullable ? " | null" : "")} = ");
-                if (info.IsNullable)
-                {
-                    Output.WriteLine("null;");
-                }
-                else
-                {
-                    if (type.EndsWith("[]"))
-                    {
-                        Output.WriteLine("[];");
-                    }
-                    else
-                    {
-                        if (Converter.IsStandardType(info.Type!))
-                        {
-                            Output.WriteLine($"{TypeScriptTypeConverter.tsStandardTypeValues[BaseTypeConverter.csStandardTypes.IndexOf(info.Type!)]};");
-                        }
-                        else
-                        {
-                            if ((null != info.ImplementedClass) && info.ImplementedClass.IsEnum)
-                            {
-                                Output.WriteLine($"{info.ImplementedClass.Name}.{info.ImplementedClass.Fields.First().Value.Name};");
-                            }
-                            else
-                            {
-                                Output.WriteLine($"new {type}();");
-                            }
-                        }
-                    }
-                }
+                Output.Write($"{(info.IsNullable ? " | null" : "")}");
+                Output.Write(Converter.GetDefaultMemberValue(info));
+                Output.WriteLine(";");
             }
         }
 

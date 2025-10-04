@@ -110,23 +110,15 @@ namespace Z3
             // HTML does not use constructors.
         }
 
-        protected override void WriteProperties()
+        protected override void WriteMembers()
         {
-            foreach (var propertyInfo in ClassInfo!.Properties.Values)
+            foreach (var memberInfo in ClassInfo!.Members)
             {
-                WriteFieldOrProperty(propertyInfo);
+                WriteMemberInfo(memberInfo);
             }
         }
 
-        protected override void WriteFields()
-        {
-            foreach (var fieldInfo in ClassInfo!.Fields.Values)
-            {
-                WriteFieldOrProperty(fieldInfo);
-            }
-        }
-
-        private void WriteFieldOrProperty(MetadataMemberInfo info)
+        private void WriteMemberInfo(MetadataMemberInfo info)
         {
             var type = Converter.ConvertType(info);
             var value = "[(value)]";

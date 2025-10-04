@@ -16,30 +16,6 @@ using System.Collections.Generic;
 namespace Zestien3
 {
     /// <summary>
-    /// This enum defines what kind of TypeScript constructor should be generated.
-    /// </summary>
-    public enum TSConstructorType
-    {
-        /// <summary>
-        /// No constructor will be created.
-        /// </summary>
-        None,
-
-        /// <summary>
-        /// A constructor taking every property as a parameter will be created.
-        /// This will create a minimal file, where all properties are defined in the constructor.
-        /// </summary>
-
-        AllMembers,
-
-        /// <summary>
-        /// A constructor taking one parameter of the same type as the created class.
-        /// The constructor will contain the code where all properties are copied (a = other.a).
-        /// </summary>
-        Copy
-    }
-
-    /// <summary>
     /// Enum to indicate the language(s) to which the classes should be converted.
     /// </summary>
     public enum Language
@@ -71,12 +47,6 @@ namespace Zestien3
         /// The Language(s) to which the class should be translated.
         /// </summary>
         public Language Language { get; set; }
-
-        /// <summary>
-        /// A constructor taking one parameter of the same type will be generated.
-        /// The constructor also contains the code that will copy each property and field.
-        /// </summary>
-        public TSConstructorType Constructor { get; set; } = TSConstructorType.None;
     }
 
     /// <summary>

@@ -83,40 +83,20 @@ namespace Z3
             }
 
             // Here we write the references to the files for the defined properties.
-            foreach (var property in classInfo.Properties.Values)
+            foreach (var member in classInfo.Members)
             {
-                if (classInfo.FullName != property.Type!)
+                if (classInfo.FullName != member.Type!)
                 {
-                    var type = BaseTypeConverter.StripToBareType(property.Type!);
+                    var type = BaseTypeConverter.StripToBareType(member.Type!);
                     if (!ReferencedFiles.Contains(type) && !Converter.IsStandardType(type))
                     {
                         ReferencedFiles.Add(type);
-                        if (property.DefiningClass!.UseInFrontend.ContainsKey(UseInFrontend.Language))
+                        if (member.DefiningClass!.UseInFrontend.ContainsKey(UseInFrontend.Language))
                         {
                             WriteFileReference(
                                 type,
-                                Converter.GetFileNameForReference(property.ImplementedClass!),
-                                property.DefiningClass!.UseInFrontend[UseInFrontend.Language].SubFolder!);
-                        }
-                    }
-                }
-            }
-
-            // Here we write the references to the files for the defined fields.
-            foreach (var field in classInfo.Fields.Values)
-            {
-                if (classInfo.FullName != field.Type!)
-                {
-                    var type = BaseTypeConverter.StripToBareType(field.Type!);
-                    if (!ReferencedFiles.Contains(type) && !Converter.IsStandardType(type))
-                    {
-                        ReferencedFiles.Add(type);
-                        if (field.DefiningClass!.UseInFrontend.ContainsKey(UseInFrontend.Language))
-                        {
-                            WriteFileReference(
-                                type,
-                                Converter.GetFileNameForReference(field.ImplementedClass!),
-                                field.DefiningClass!.UseInFrontend[UseInFrontend.Language].SubFolder!);
+                                Converter.GetFileNameForReference(member.ImplementedClass!),
+                                member.DefiningClass!.UseInFrontend[UseInFrontend.Language].SubFolder!);
                         }
                     }
                 }
@@ -140,10 +120,7 @@ namespace Z3
             WriteConstructor();
 
             // Now we write the definitions of all properties that are to be serialized.
-            WriteProperties();
-
-            // Followed by the definitions of all fields that are to be serialized.
-            WriteFields();
+            WriteMembers();
 
             // We now have the chance to close the class.
             CloseClass();
@@ -160,8 +137,7 @@ namespace Z3
         protected abstract void OpenNamespace();
         protected abstract void OpenClass();
         protected abstract void WriteConstructor();
-        protected abstract void WriteProperties();
-        protected abstract void WriteFields();
+        protected abstract void WriteMembers();
         protected abstract void CloseClass();
         protected abstract void CloseNamespace();
 

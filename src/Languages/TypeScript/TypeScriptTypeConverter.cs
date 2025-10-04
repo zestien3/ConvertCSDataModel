@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Text;
 using System.Text.Json;
 
 namespace Z3
@@ -42,7 +44,7 @@ namespace Z3
         }
 
         /// <summary>
-        /// Convert the given C# type to a TypeSCript type.
+        /// Convert the given C# type to a TypeScript type.
         /// </summary>
         /// <param name="memberInfo">The C# type.</param>
         /// <returns>The given type converted to TypeScript.</returns>
@@ -95,6 +97,85 @@ namespace Z3
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Returns a string containing the default value of the given member.
+        /// </summary>
+        /// <remarks>
+        /// Something like " = 0", " = []" or " = new MyClass()".
+        /// It can be used in definitions of members or in defining constructors.
+        /// </remarks>
+        /// <param name="member">The member for which the default value is requested.</param>
+        /// <returns>A string containing the default value of the member, preceded by " = ".</returns>
+        public override string GetDefaultMemberValue(MetadataMemberInfo member)
+        {
+            var result = new StringBuilder();
+            var type = null == member.ImplementedClass ? member.Type! : ConvertType(member);
+
+            result.Append(" = ");
+            if (member.IsNullable)
+            {
+                result.Append("null");
+            }
+            else
+            {
+                if (type.EndsWith("[]"))
+                {
+                    result.Append("[]");
+                }
+                else
+                {
+                    if (IsStandardType(member.Type!))
+                    {
+                        result.Append($"{TypeScriptTypeConverter.tsStandardTypeValues[BaseTypeConverter.csStandardTypes.IndexOf(member.Type!)]}");
+                    }
+                    else
+                    {
+                        if ((null != member.ImplementedClass) && member.ImplementedClass.IsEnum)
+                        {
+                            result.Append($"{member.ImplementedClass.Name}.{member.ImplementedClass.Members.First().Name}");
+                        }
+                        else
+                        {
+                            result.Append($"new {type}()");
+                        }
+                    }
+                }
+            }
+
+            return result.ToString();
+        }
+
+        /// <summary>
+        /// Get a code snippet representing the check for a specific type.
+        /// </summary>
+        /// <param name="member">The member for which the check must be constructed.</param>
+        /// <returns>A code snippet to check the real type of the given member.</returns>
+        public string GetUnionTypeCheck(MetadataMemberInfo member)
+        {
+            var result = string.Empty;
+            var tsType = this.ConvertType(member);
+
+            if (IsArray(tsType))
+            {
+                result = $"{BaseTypeConverter.ToJSONCase(member.Name!)} instanceof Array && ";
+                tsType = tsType[..^2];
+
+                if (tsStandardTypes.Contains(tsType) && (tsType != "Date") && (tsType != "File"))
+                {
+                    return result + $"typeof {BaseTypeConverter.ToJSONCase(member.Name!)}[0] === \"{tsType}\"";
+                }
+
+                return result + $"{BaseTypeConverter.ToJSONCase(member.Name!)}[0] instanceof {tsType}";
+            }
+
+            if (tsStandardTypes.Contains(tsType) && (tsType != "Date") && (tsType != "File"))
+            {
+                return $"typeof {BaseTypeConverter.ToJSONCase(member.Name!)} === \"{tsType}\"";
+            }
+
+            return $"{BaseTypeConverter.ToJSONCase(member.Name!)} instanceof {tsType}";
         }
 
         /// <summary>

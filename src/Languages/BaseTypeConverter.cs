@@ -63,6 +63,17 @@ namespace Z3
         public abstract bool IsStandardType(string csType);
 
         /// <summary>
+        /// Returns a string containing the default value of the given member.
+        /// </summary>
+        /// <remarks>
+        /// Something like " = 0", " = []" or " = new MyClass()".
+        /// It can be used in definitions of members or in defining constructors.
+        /// </remarks>
+        /// <param name="member">The member for which the default value is requested.</param>
+        /// <returns>A string containing the default value of the member, preceded by " = ".</returns>
+        public abstract string GetDefaultMemberValue(MetadataMemberInfo member);
+
+        /// <summary>
         /// Returns true if the given C# type is an array.
         /// </summary>
         /// <param name="csType">The C# type in string format.</param>

@@ -8,8 +8,7 @@ namespace Z3
     internal class MetadataClassInfo : MetadataInfo
     {
         private TypeDefinition typeDef;
-        private Dictionary<string, MetadataPropertyInfo> properties = [];
-        private Dictionary<string, MetadataFieldInfo> fields = [];
+        private List<MetadataMemberInfo> members = [];
 
         protected MetadataClassInfo(string type) : base(null, null)
         {
@@ -68,10 +67,6 @@ namespace Z3
                 {
                     subFolder = new(nameof(UseInFrontendAttribute.SubFolder), CustomAttributeNamedArgumentKind.Property, "string", ".");
                 }
-                if (!attribute.NamedArguments.TryGetValue(nameof(UseInFrontendAttribute.Constructor), out var constructor))
-                {
-                    constructor = new(nameof(UseInFrontendAttribute.Constructor), CustomAttributeNamedArgumentKind.Property, "int", 0);
-                }
                 if (!attribute.NamedArguments.TryGetValue(nameof(UseInFrontendAttribute.Language), out var language))
                 {
                     throw new ArgumentException($"${nameof(UseInFrontendAttribute)} must have it's ${nameof(UseInFrontendAttribute.Language)} property set.");
@@ -80,7 +75,6 @@ namespace Z3
                 UseInFrontend[(Language)language.Value!] =
                     new()
                     {
-                        Constructor = (TSConstructorType)((int)constructor.Value!),
                         SubFolder = (string)subFolder.Value!,
                         Language = (Language)language.Value!
                     };
@@ -142,24 +136,24 @@ namespace Z3
             {
                 foreach (var propertyHandle in typeDef.GetProperties())
                 {
-                    var propertyInfo = new MetadataPropertyInfo(Reader!.GetPropertyDefinition(propertyHandle), this, Reader, XmlDoc);
+                    var propertyInfo = new MetadataMemberInfo(Reader!.GetPropertyDefinition(propertyHandle), this, Reader, XmlDoc);
                     propertyInfo.AllClassesLoaded(this, 1);
                     if (!propertyInfo.DontSerialize && (propertyInfo.Visibility != Visibility.Private))
                     {
-                        properties[propertyInfo.Name!] = propertyInfo;
+                        members.Add(propertyInfo);
                     }
                 }
 
                 foreach (var fieldHandle in typeDef.GetFields())
                 {
-                    var fieldInfo = new MetadataFieldInfo(Reader!.GetFieldDefinition(fieldHandle), this, Reader, XmlDoc);
+                    var fieldInfo = new MetadataMemberInfo(Reader!.GetFieldDefinition(fieldHandle), this, Reader, XmlDoc);
                     fieldInfo.AllClassesLoaded(this, 1);
                     if (!fieldInfo.DontSerialize &&
                         (fieldInfo.Visibility != Visibility.Private) &&
                         !fieldInfo.Attributes.ContainsKey("CompilerGeneratedAttribute") &&
                         !fieldInfo.Attributes.ContainsKey("SpecialNameAttribute"))
                     {
-                        fields[fieldInfo.Name!] = fieldInfo;
+                        members.Add(fieldInfo);
                     }
                 }
 
@@ -169,9 +163,7 @@ namespace Z3
 
         public MetadataAssemblyInfo? ContainingAssembly { get; private set; }
 
-        public IReadOnlyDictionary<string, MetadataPropertyInfo> Properties { get { return properties.AsReadOnly(); } }
-
-        public IReadOnlyDictionary<string, MetadataFieldInfo> Fields { get { return fields.AsReadOnly(); } }
+        public IReadOnlyList<MetadataMemberInfo> Members { get { return members.AsReadOnly(); } }
 
         public MetadataClassInfo? BaseType { get; private set; }
 

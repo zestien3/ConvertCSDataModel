@@ -19,6 +19,7 @@ namespace Z3
                 switch (useInFrontend.Language)
                 {
                     case Language.TypeScript:
+                        Logger.LogMessage($"Generating TypeScript code for class {classInfo.Name}");
                         fileName = TypeScriptTypeConverter.GetFileNameFromClass(classInfo, useInFrontend.SubFolder);
                         {
                             using TextWriter writer = GetTextWriter(outputFolder, fileName);
@@ -26,6 +27,7 @@ namespace Z3
                         }
                         break;
                     case Language.HTML:
+                        Logger.LogMessage($"Generating HTML code for class {classInfo.Name}");
                         fileName = HTMLTypeConverter.GetFileNameFromClass(classInfo, useInFrontend.SubFolder);
                         {
                             using TextWriter writer = GetTextWriter(outputFolder, fileName);

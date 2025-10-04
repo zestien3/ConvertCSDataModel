@@ -67,6 +67,21 @@ namespace Z3
         }
 
         /// <summary>
+        /// Returns a string containing the default value of the given member.
+        /// </summary>
+        /// <remarks>
+        /// Something like " = 0", " = []" or " = new MyClass()".
+        /// It can be used in definitions of members or in defining constructors.
+        /// </remarks>
+        /// <param name="member">The member for which the default value is requested.</param>
+        /// <returns>A string containing the default value of the member, preceded by " = ".</returns>
+        public override string GetDefaultMemberValue(MetadataMemberInfo member)
+        {
+            // At this moment, this method is not used by the HTML language generator. 
+            return string.Empty;
+        }
+
+        /// <summary>
         /// Return the file name to store the HTML representation of the given MetadataClassInfo.
         /// </summary>
         /// <remarks>
