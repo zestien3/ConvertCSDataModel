@@ -12,6 +12,7 @@ namespace Z3
         private TypeScriptFormatter Formatter { get; set; }
         private TextWriter Output { get; set; }
         private bool SingleParameterMustBeCreated { get; set; }
+        public string? FirstParameterName { get; private set; }
 
         public TypeScriptConstructors(MetadataClassInfo classInfo, BaseFormatter formatter, BaseTypeConverter converter, TextWriter output)
         {
@@ -64,9 +65,11 @@ namespace Z3
                 membersToSkip.AddRange(classInfo.FixedConstructionParameters.Keys);
         }
 
-        private void GenerateConstructorParameter(MetadataMemberInfo member, List<string> membersToSkip, bool isFirstParameter, bool isThisClass)
+        private void GenerateConstructorParameter(MetadataMemberInfo member, bool isFirstParameter, bool isThisClass)
         {
-            if (!isFirstParameter)
+            if (isFirstParameter)
+                this.FirstParameterName = BaseTypeConverter.ToJSONCase(member.Name!);
+            else
                 Output.Write(",");
 
             Output.Write(" ");
@@ -101,7 +104,7 @@ namespace Z3
                     // GenerateConstructorParameters
                     if (!membersToSkip.Contains(member.Name!) && !ClassInfo.FixedConstructionParameters.ContainsKey(member.Name!))
                     {
-                        GenerateConstructorParameter(member, membersToSkip, firstParameter, lastClass);
+                        GenerateConstructorParameter(member, firstParameter, lastClass);
                         firstParameter = false;
                     }
             }
@@ -168,28 +171,26 @@ namespace Z3
         {
             if (ClassInfo.Members.Count > 0)
             {
-                var firstParameterName = BaseTypeConverter.ToJSONCase(ClassInfo.Members[0].Name!);
-
                 Formatter.WriteIndent(2);
-                Output.WriteLine($"if ({firstParameterName}) {{");
+                Output.WriteLine($"if (null != {FirstParameterName}) {{");
 
                 // Create a check for the type of the first parameter.
 
                 Formatter.WriteIndent(3);
-                Output.WriteLine($"if ({firstParameterName} instanceof {ClassInfo.Name!}) {{");
+                Output.WriteLine($"if ({FirstParameterName} instanceof {ClassInfo.Name!}) {{");
 
                 foreach (var member in ClassInfo.Members)
                 {
                     var parameterName = BaseTypeConverter.ToJSONCase(member.Name!);
                     Formatter.WriteIndent(4);
-                    Output.WriteLine($"this.{parameterName} = {firstParameterName}.{parameterName};");
+                    Output.WriteLine($"this.{parameterName} = {FirstParameterName}.{parameterName};");
                 }
 
                 Formatter.WriteIndent(3);
                 Output.WriteLine("} else {");
 
                 Formatter.WriteIndent(4);
-                Output.WriteLine($"this.{firstParameterName} = {firstParameterName};");
+                Output.WriteLine($"this.{FirstParameterName} = {FirstParameterName};");
 
                 Formatter.WriteIndent(3);
                 Output.WriteLine("}");
