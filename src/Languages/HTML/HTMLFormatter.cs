@@ -118,6 +118,11 @@ namespace Z3
             }
         }
 
+        protected override void WriteMethods()
+        {
+            // Not used for generating HTML code.
+        }
+
         private void WriteMemberInfo(MetadataMemberInfo info)
         {
             var type = Converter.ConvertType(info);

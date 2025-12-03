@@ -122,6 +122,9 @@ namespace Z3
             // Now we write the definitions of all properties that are to be serialized.
             WriteMembers();
 
+            // If there are some extra methods reequired, this is the chance to do so.
+            WriteMethods();
+
             // We now have the chance to close the class.
             CloseClass();
 
@@ -138,6 +141,7 @@ namespace Z3
         protected abstract void OpenClass();
         protected abstract void WriteConstructor();
         protected abstract void WriteMembers();
+        protected abstract void WriteMethods();
         protected abstract void CloseClass();
         protected abstract void CloseNamespace();
 

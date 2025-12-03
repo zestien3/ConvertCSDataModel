@@ -120,8 +120,15 @@ namespace Z3
         protected override void WriteMembers()
         {
             // In TypeScript we only have max 1 member to declare, the rest is declared in the constructor.
-            // So since we only now if we need to create that single member while creating the constructor,
+            // So since we only know if we need to create that single member while creating the constructor,
             // we will generate the member there if required.
+        }
+
+        protected override void WriteMethods()
+        {
+            // We create a method to clone a weak typed object.
+            // We receive those from the server when making a HTTP request.
+            new TypeScriptWeakTypeCloneMethod(ClassInfo!, this, Converter, Output).CreateMethod();
         }
 
         private void WriteMemberInfo(MetadataMemberInfo info)
