@@ -14,7 +14,7 @@ namespace Z3
         /// <param name="assemblyInfo">The assembly for which we create the output.</param>
         /// <param name="output">The output to which the type script code must be written.</param>
         public HTMLFormatter(MetadataAssemblyInfo assemblyInfo, TextWriter output)
-            : base(assemblyInfo, output, new TypeScriptTypeConverter())
+            : base(assemblyInfo, output, new HTMLTypeConverter())
         {
             IndentSize = 2;
         }
@@ -150,7 +150,7 @@ namespace Z3
             {
                 Output.Write($" type=\"{type}\"");
             }
-            Output.WriteLine(" />");
+            Output.WriteLine(" autocomplete=\"off\" />");
             WriteIndent(4);
             Output.WriteLine("</div>");
             WriteIndent(3);

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.IO;
 
 namespace Z3
@@ -29,6 +30,12 @@ namespace Z3
         /// <returns>The given type converted to TypeScript.</returns>
         public override string ConvertType(MetadataMemberInfo memberInfo)
         {
+            // For the HTML code generation, this is only used to
+            // set the type attribute of the generated input element.
+            if (memberInfo.Attributes.ContainsKey(nameof(EmailAddressAttribute)))
+            {
+                return "email";
+            }
             var csType = StripToBareType(memberInfo.Type!);
             var index = BaseTypeConverter.csStandardTypes.IndexOf(csType);
             if (-1 != index)
