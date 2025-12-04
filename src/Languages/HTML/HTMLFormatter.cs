@@ -126,7 +126,7 @@ namespace Z3
         private void WriteMemberInfo(MetadataMemberInfo info)
         {
             var type = Converter.ConvertType(info);
-            var value = "[(value)]";
+            var value = "[(ngModel)]";
             var change = "";
 
             if (type == "File")
