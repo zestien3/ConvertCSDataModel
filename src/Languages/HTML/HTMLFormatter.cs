@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
@@ -137,6 +138,17 @@ namespace Z3
 
             var label = BaseTypeConverter.ToLabelCase(info.Name!);
 
+            if (info.Attributes.ContainsKey(nameof(DisplayNameAttribute)))
+            {
+                label = info.Attributes[nameof(DisplayNameAttribute)].FixedArguments[0].Value!.ToString();
+            }
+
+            var editor = "input";
+            if (info.Attributes.ContainsKey(nameof(EditorAttribute)))
+            {
+                editor = info.Attributes[nameof(EditorAttribute)].FixedArguments[0].Value!.ToString();
+            }
+
             var fullName = $"{BaseTypeConverter.ToJSONCase(info.DefiningClass!.Name!)}.{BaseTypeConverter.ToJSONCase(info.Name!)}";
             WriteIndent(3);
             Output.WriteLine("<div class=\"row\">");
@@ -145,12 +157,27 @@ namespace Z3
             WriteIndent(4);
             Output.WriteLine("<div class=\"col-8\">");
             WriteIndent(5);
-            Output.Write($"<input class=\"form-control\" {value}=\"{fullName}\"{change}");
-            if (!string.IsNullOrEmpty(type))
+
+            if (editor == "input")
             {
-                Output.Write($" type=\"{type}\"");
+                var classes = "form-control";
+                if (type == "checkbox")
+                {
+                    classes += " form-check-input";
+                }
+                Output.Write($"<input class=\"{classes}\" {value}=\"{fullName}\"{change}");
+                if (!string.IsNullOrEmpty(type))
+                {
+                    Output.Write($" type=\"{type}\"");
+                }
+                Output.WriteLine(" autocomplete=\"off\" />");
             }
-            Output.WriteLine(" autocomplete=\"off\" />");
+            else
+            {
+                Output.Write($"<{editor} [(ngModel)]=\"{fullName}\"");
+                Output.WriteLine($"></{editor}>");
+            }
+
             WriteIndent(4);
             Output.WriteLine("</div>");
             WriteIndent(3);
