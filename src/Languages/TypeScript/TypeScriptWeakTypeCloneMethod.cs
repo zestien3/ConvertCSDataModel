@@ -48,20 +48,12 @@ namespace Z3
         {
             Output.WriteLine();
             Formatter.WriteIndent(1);
-            Output.WriteLine($"public static CopyFromWeakType(other: any): {ClassInfo.Name} {{");
+            Output.WriteLine("public CopyFromWeakType(other: any): void {");
         }
 
         private void CreateMethodContent(List<MetadataClassInfo> classInheritance)
         {
-            Formatter.WriteIndent(2);
-            Output.WriteLine($"let result: {ClassInfo.Name} = new {ClassInfo.Name}();");
-            Output.WriteLine();
-
             CreateCodeToCopyFromOther(classInheritance);
-
-            Output.WriteLine();
-            Formatter.WriteIndent(2);
-            Output.WriteLine("return result;");
 
             Formatter.WriteIndent(1);
             Output.WriteLine("}");
@@ -77,9 +69,10 @@ namespace Z3
                     {
                         var parameterName = BaseTypeConverter.ToJSONCase(member.Name!);
                         Formatter.WriteIndent(2);
-                        Output.WriteLine($"result.{parameterName} = other.{parameterName};");
+                        Output.WriteLine($"this.{parameterName} = other.{parameterName};");
                     }
-                } }
+                }
+            }
         }
     }
 }
