@@ -1,5 +1,7 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection.Metadata;
 using Zestien3;
 
@@ -63,22 +65,35 @@ namespace Z3
             // Get the UseInFrontendAttribute and store it.
             if (attribute.Name == nameof(UseInFrontendAttribute))
             {
+                if (!attribute.NamedArguments.TryGetValue(nameof(UseInFrontendAttribute.Language), out var language))
+                {
+                    throw new ArgumentException($"${nameof(UseInFrontendAttribute)} must have it's ${nameof(UseInFrontendAttribute.Language)} property set.");
+                }
                 if (!attribute.NamedArguments.TryGetValue(nameof(UseInFrontendAttribute.SubFolder), out var subFolder))
                 {
                     subFolder = new(nameof(UseInFrontendAttribute.SubFolder), CustomAttributeNamedArgumentKind.Property, "string", ".");
                 }
-                if (!attribute.NamedArguments.TryGetValue(nameof(UseInFrontendAttribute.Language), out var language))
+
+                if (!attribute.NamedArguments.TryGetValue(nameof(UseInFrontendAttribute.HiddenProperties), out var hidden))
                 {
-                    throw new ArgumentException($"${nameof(UseInFrontendAttribute)} must have it's ${nameof(UseInFrontendAttribute.Language)} property set.");
+                    string[] value = [];
+                    hidden = new(nameof(UseInFrontendAttribute.HiddenProperties), CustomAttributeNamedArgumentKind.Property, "string[]", value);
                 }
 
                 UseInFrontend[(Language)language.Value!] =
                     new()
                     {
                         SubFolder = (string)subFolder.Value!,
-                        Language = (Language)language.Value!
+                        Language = (Language)language.Value!,
+                        HiddenProperties = []
                     };
+
+                foreach (var hiddenProperty in (IEnumerable)hidden.Value!)
+                {
+                    UseInFrontend[(Language)language.Value!].HiddenProperties.Add((string)((CustomAttributeTypedArgument<string>)hiddenProperty).Value!);
+                }
             }
+
             if (attribute.Name == nameof(FixedParameterValueAttribute))
             {
                 if (attribute.NamedArguments.TryGetValue(nameof(FixedParameterValueAttribute.Name), out var name))
@@ -104,6 +119,7 @@ namespace Z3
                                 var baseType = Reader!.GetTypeDefinition((TypeDefinitionHandle)typeDef.BaseType);
                                 BaseTypeFullName = Reader.GetString(baseType.Namespace) + "." + Reader.GetString(baseType.Name);
                                 BaseType = assemblyInfo.ClassesByName[BaseTypeFullName];
+                                BaseType.DerivedTypes.Add(this);
                                 break;
                             }
                         case HandleKind.TypeReference:
@@ -161,6 +177,57 @@ namespace Z3
             }
         }
 
+        public bool Any(Func<MetadataClassInfo, bool> callBack)
+        {
+            if (callBack(this))
+            {
+                return true;
+            }
+            foreach (var derivedType in DerivedTypes)
+            {
+                if (derivedType.Any(callBack))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public bool All(Func<MetadataClassInfo, bool> callBack)
+        {
+            if (!callBack(this))
+            {
+                return false;
+            }
+            foreach (var derivedType in DerivedTypes)
+            {
+                if (!derivedType.Any(callBack))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        public List<T> Select<T>(Func<MetadataClassInfo, List<T>> callBack)
+        {
+            List<T> result = callBack(this);
+            foreach (var derivedType in DerivedTypes)
+            {
+                var o = callBack(derivedType);
+                if (null != o)
+                {
+                    result.AddRange(o);
+                }
+
+                result.AddRange(derivedType.Select<T>(callBack));
+            }
+
+            return result;
+        }
+
         public MetadataAssemblyInfo? ContainingAssembly { get; private set; }
 
         public IReadOnlyList<MetadataMemberInfo> Members { get { return members.AsReadOnly(); } }
@@ -168,6 +235,8 @@ namespace Z3
         public MetadataClassInfo? BaseType { get; private set; }
 
         public string? BaseTypeFullName { get; private set; }
+
+        public List<MetadataClassInfo> DerivedTypes { get; } = [];
 
         public string Namespace { get; }
 

@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
-using System.Reflection;
+
+using Zestien3;
 
 namespace Z3
 {
@@ -96,8 +96,22 @@ namespace Z3
 
             if (!string.IsNullOrEmpty(baseClassSelector))
             {
+                var hiddenProperties = ClassInfo.Select<string>(c =>
+                {
+                    if (c.UseInFrontend.ContainsKey(Language.HTML))
+                    {
+                        return c.UseInFrontend[Language.HTML].HiddenProperties;
+                    }
+
+                    return [];
+                });
                 WriteIndent(1);
-                Output.WriteLine($"<app-edit-{baseClassSelector} [{baseClassName}]=\"{className}\" [showTitle]=\"false\"></app-edit-{baseClassSelector}>");
+                Output.Write($"<app-edit-{baseClassSelector} [{baseClassName}]=\"{className}\" [showTitle]=\"false\"");
+                foreach(var hiddenProperty in hiddenProperties)
+                {
+                    Output.Write($" [hide{hiddenProperty}]=\"true\"");
+                }
+                Output.WriteLine($"></app-edit-{baseClassSelector}>");
             }
 
             WriteIndent(1);
@@ -115,7 +129,8 @@ namespace Z3
         {
             foreach (var memberInfo in ClassInfo!.Members)
             {
-                WriteMemberInfo(memberInfo);
+                if (!ClassInfo!.UseInFrontend[Zestien3.Language.HTML]!.HiddenProperties.Contains(memberInfo.Name!))
+                    WriteMemberInfo(memberInfo);
             }
         }
 
@@ -126,6 +141,24 @@ namespace Z3
 
         private void WriteMemberInfo(MetadataMemberInfo info)
         {
+            var addHideOptionForMember = ClassInfo!.Any(c =>
+                {
+                    if (c.UseInFrontend.ContainsKey(Language.HTML))
+                    {
+                        return c.UseInFrontend[Language.HTML]!.HiddenProperties.Contains(info.Name);
+                    }
+
+                    return false;
+                });
+
+            var indent = 3;
+            if (addHideOptionForMember)
+            {
+                indent++;
+                WriteIndent(3);
+                Output.WriteLine($"@if (!hide{info.Name}) {{");
+            }
+
             var type = Converter.ConvertType(info);
             var value = "[(ngModel)]";
             var change = "";
@@ -150,13 +183,13 @@ namespace Z3
             }
 
             var fullName = $"{BaseTypeConverter.ToJSONCase(info.DefiningClass!.Name!)}.{BaseTypeConverter.ToJSONCase(info.Name!)}";
-            WriteIndent(3);
+            WriteIndent(indent);
             Output.WriteLine("<div class=\"row\">");
-            WriteIndent(4);
+            WriteIndent(indent + 1);
             Output.WriteLine($"<label class=\"col-4\" i18n=\"edit|{label}\">{label}</label>");
-            WriteIndent(4);
+            WriteIndent(indent + 1);
             Output.WriteLine("<div class=\"col-8\">");
-            WriteIndent(5);
+            WriteIndent(indent + 2);
 
             if (editor == "input")
             {
@@ -178,10 +211,16 @@ namespace Z3
                 Output.WriteLine($"></{editor}>");
             }
 
-            WriteIndent(4);
+            WriteIndent(indent + 1);
             Output.WriteLine("</div>");
-            WriteIndent(3);
+            WriteIndent(indent);
             Output.WriteLine("</div>");
+
+            if (addHideOptionForMember)
+            {
+                WriteIndent(3);
+                Output.WriteLine("}");
+            }
         }
 
         protected override void CloseClass()

@@ -39,14 +39,19 @@ namespace Zestien3
         public UseInFrontendAttribute() { }
 
         /// <summary>
+        /// The Language(s) to which the class should be translated.
+        /// </summary>
+        public Language Language { get; set; }
+
+        /// <summary>
         /// The subfolder where the translated file will be generated.
         /// </summary>
         public string SubFolder { get; set; } = string.Empty;
 
         /// <summary>
-        /// The Language(s) to which the class should be translated.
+        /// The properties which are hidden in the UI generation.
         /// </summary>
-        public Language Language { get; set; }
+        public List<string> HiddenProperties { get; set; } = [];
     }
 
     /// <summary>
