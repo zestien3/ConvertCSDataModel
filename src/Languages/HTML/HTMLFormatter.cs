@@ -145,7 +145,7 @@ namespace Z3
                 {
                     if (c.UseInFrontend.ContainsKey(Language.HTML))
                     {
-                        return c.UseInFrontend[Language.HTML]!.HiddenProperties.Contains(info.Name);
+                        return c.UseInFrontend[Language.HTML]!.HiddenProperties.Contains(info.Name!);
                     }
 
                     return false;
