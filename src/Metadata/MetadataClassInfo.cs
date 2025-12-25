@@ -10,6 +10,8 @@ namespace Z3
     internal class MetadataClassInfo : MetadataInfo
     {
         private TypeDefinition typeDef;
+        protected Dictionary<string, MetadataAttributeInfo> attributes = [];
+
         private List<MetadataMemberInfo> members = [];
 
         protected MetadataClassInfo(string type) : base(null, null)
@@ -40,13 +42,14 @@ namespace Z3
             XmlMemberName = $"T:{FullName}";
 
             // We are going to look for Custom Attributes.
-            // For now we are only interested in UseInFrontendAttribute.
-            // This code will get those for us. There are a number of 
-            // custom attributes we will skip, but that is OK for now.
             var classAttributes = typeDef.GetCustomAttributes();
             foreach (var attributeHandle in classAttributes)
             {
                 var attribute = new MetadataAttributeInfo(reader.GetCustomAttribute(attributeHandle), Reader!);
+
+                if (null != attribute.Name)
+                    attributes[attribute.Name!] = attribute;
+
                 if (!string.IsNullOrEmpty(attribute.Name))
                 {
                     ProcessFoundAttribute(attribute);
@@ -227,6 +230,11 @@ namespace Z3
 
             return result;
         }
+
+        /// <summary>
+        /// A list of attributes that are set on this class.
+        /// </summary>
+        public IReadOnlyDictionary<string, MetadataAttributeInfo> Attributes => attributes.AsReadOnly();
 
         public MetadataAssemblyInfo? ContainingAssembly { get; private set; }
 

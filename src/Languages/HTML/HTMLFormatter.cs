@@ -85,11 +85,16 @@ namespace Z3
         protected override void OpenClass()
         {
             var title = $"Edit {BaseTypeConverter.StripToMinimalName(ClassInfo!.Name!)}";
+            if (ClassInfo!.Attributes.TryGetValue("DisplayNameAttribute", out var displayName))
+            {
+                title = $"Edit {displayName.FixedArguments[0].Value!}";
+            }
+
             var className = BaseTypeConverter.ToJSONCase(ClassInfo!.Name!);
             var baseClassName = null == ClassInfo!.BaseType ? "" : BaseTypeConverter.ToJSONCase(ClassInfo!.BaseType!.Name!);
             var baseClassSelector = null == ClassInfo!.BaseType ? "" : BaseTypeConverter.StripToMinimalName(ClassInfo.BaseType!.Name!);
 
-            Output.WriteLine($"@if (showTitle) {{ <h4 i18n=\"generic|{title}\">{title}</h4> }}");
+            Output.WriteLine($"@if (showTitle) {{ <h4 i18n=\"generic|{title}\"><b>{title}</b></h4> }}");
             Output.WriteLine($"@if({className}) {{");
             WriteIndent(1);
             Output.WriteLine($"@if (showTitle) {{ <hr /> }}");
