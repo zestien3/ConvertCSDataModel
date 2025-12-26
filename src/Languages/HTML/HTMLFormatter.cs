@@ -134,8 +134,7 @@ namespace Z3
         {
             foreach (var memberInfo in ClassInfo!.Members)
             {
-                if (!ClassInfo!.UseInFrontend[Zestien3.Language.HTML]!.HiddenProperties.Contains(memberInfo.Name!))
-                    WriteMemberInfo(memberInfo);
+                WriteMemberInfo(memberInfo);
             }
         }
 
