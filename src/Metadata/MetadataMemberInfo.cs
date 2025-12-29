@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Reflection;
 using System.Reflection.Metadata;
 
@@ -173,32 +174,40 @@ namespace Z3
                         }
                         else
                         {
-                            var nullableContext = 1;
-                            var definingClass = DefiningClass;
-                            while (null != definingClass && null == definingClass.NullableContext)
+                            if (Type.StartsWith("System.Nullable"))
                             {
-                                if (definingClass.ContainingAssembly!.ClassesByName.ContainsKey(definingClass.Namespace))
-                                {
-                                    definingClass = definingClass.ContainingAssembly.ClassesByName[definingClass.Namespace];
-                                }
-                                else
-                                {
-                                    definingClass = null;
-                                }
-                            }
-
-                            if (null != definingClass?.NullableContext)
-                            {
-                                nullableContext = definingClass.NullableContext.Value;
-                            }
-
-                            if ((nullableContext == 0) && (Type != "string"))
-                            {
-                                IsNullable = !string.IsNullOrEmpty(ImplementedClass.BaseTypeFullName);
+                                IsNullable = true;
+                                Type = BaseTypeConverter.StripToBareType(Type);
                             }
                             else
                             {
-                                IsNullable = nullableContext != 1;
+                                var nullableContext = 1;
+                                var definingClass = DefiningClass;
+                                while (null != definingClass && null == definingClass.NullableContext)
+                                {
+                                    if (definingClass.ContainingAssembly!.ClassesByName.ContainsKey(definingClass.Namespace))
+                                    {
+                                        definingClass = definingClass.ContainingAssembly.ClassesByName[definingClass.Namespace];
+                                    }
+                                    else
+                                    {
+                                        definingClass = null;
+                                    }
+                                }
+
+                                if (null != definingClass?.NullableContext)
+                                {
+                                    nullableContext = definingClass.NullableContext.Value;
+                                }
+
+                                if ((nullableContext == 0) && (Type != "string"))
+                                {
+                                    IsNullable = !string.IsNullOrEmpty(ImplementedClass.BaseTypeFullName);
+                                }
+                                else
+                                {
+                                    IsNullable = nullableContext != 1;
+                                }
                             }
                         }
                     }
@@ -242,7 +251,7 @@ namespace Z3
         public bool IsGeneric => BaseTypeConverter.IsGeneric(Type);
 
         /// <summary>
-        /// Indicates if this is a generic property.
+        /// Indicates if this is a nullable property.
         /// </summary>
         public bool IsNullable { get; private set; } = false;
 

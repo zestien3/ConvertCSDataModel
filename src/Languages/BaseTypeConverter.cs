@@ -91,6 +91,12 @@ namespace Z3
         public static bool IsGeneric(string? csType)
         {
             Regex regex = IsGenericTypeRegex();
+            if (regex.IsMatch(csType!))
+            {
+                if (GetGenericType(csType!) == "System.Nullable")
+                    return false;
+            }
+
             return !string.IsNullOrEmpty(csType) && regex.IsMatch(csType!);
         }
 
