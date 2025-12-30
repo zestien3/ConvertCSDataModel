@@ -84,10 +84,10 @@ namespace Z3
 
         protected override void OpenClass()
         {
-            var title = $"Edit {BaseTypeConverter.StripToMinimalName(ClassInfo!.Name!)}";
+            var title = $"{BaseTypeConverter.StripToMinimalName(ClassInfo!.Name!)}";
             if (ClassInfo!.Attributes.TryGetValue("DisplayNameAttribute", out var displayName))
             {
-                title = $"Edit {displayName.FixedArguments[0].Value!}";
+                title = $"{displayName.FixedArguments[0].Value!}";
             }
 
             var className = BaseTypeConverter.ToJSONCase(ClassInfo!.Name!);
@@ -207,12 +207,12 @@ namespace Z3
                 {
                     Output.Write($" type=\"{type}\"");
                 }
-                Output.WriteLine(" autocomplete=\"off\" />");
+                Output.WriteLine($" autocomplete=\"off\" #{BaseTypeConverter.ToJSONCase(info.Name!)} id=\"{BaseTypeConverter.ToJSONCase(info.Name!)}\" />");
             }
             else
             {
-                Output.Write($"<{editor} [(ngModel)]=\"{fullName}\"");
-                Output.WriteLine($"></{editor}>");
+                Output.Write($"<{editor} [(ngModel)]=\"{fullName}\" ");
+                Output.WriteLine($"#{BaseTypeConverter.ToJSONCase(info.Name!)} id=\"{BaseTypeConverter.ToJSONCase(info.Name!)}\" ></{editor}>");
             }
 
             WriteIndent(indent + 1);
