@@ -180,6 +180,17 @@ namespace Z3
 
                 LoadedDepth++;
             }
+
+            // We also need to read the info from the references classes,
+            // because we might need to import their files.
+            BaseType?.AllClassesLoaded(metadataInfo, depthToLoad);
+            foreach(var member in Members)
+            {
+                if (null != member.ImplementedClass)
+                {
+                    member.ImplementedClass!.AllClassesLoaded(metadataInfo, depthToLoad);
+                }
+            }
         }
 
         public bool Any(Func<MetadataClassInfo, bool> callBack)

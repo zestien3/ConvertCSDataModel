@@ -83,23 +83,29 @@ namespace Z3
             }
 
             // Here we write the references to the files for the defined properties.
-            foreach (var member in classInfo.Members)
+            // We also need to import the types of the members from the base class.
+            var bt = classInfo;
+            while (null != bt)
             {
-                if (classInfo.FullName != member.Type!)
+                foreach (var member in bt.Members)
                 {
-                    var type = BaseTypeConverter.StripToBareType(member.Type!);
-                    if (!ReferencedFiles.Contains(type) && !Converter.IsStandardType(type))
+                    if (bt.FullName != member.Type!)
                     {
-                        ReferencedFiles.Add(type);
-                        if (member.DefiningClass!.UseInFrontend.ContainsKey(UseInFrontend.Language))
+                        var type = BaseTypeConverter.StripToBareType(member.Type!);
+                        if (!ReferencedFiles.Contains(type) && !Converter.IsStandardType(type))
                         {
-                            WriteFileReference(
-                                type,
-                                Converter.GetFileNameForReference(member.ImplementedClass!),
-                                member.DefiningClass!.UseInFrontend[UseInFrontend.Language].SubFolder!);
+                            ReferencedFiles.Add(type);
+                            if (member.DefiningClass!.UseInFrontend.ContainsKey(UseInFrontend.Language))
+                            {
+                                WriteFileReference(
+                                    type,
+                                    Converter.GetFileNameForReference(member.ImplementedClass!),
+                                    member.DefiningClass!.UseInFrontend[UseInFrontend.Language].SubFolder!);
+                            }
                         }
                     }
                 }
+                bt = bt.BaseType;
             }
 
             if (ReferencedFiles.Count > 0)

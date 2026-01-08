@@ -104,6 +104,7 @@ namespace Z3
             {
                 Output.Write($"extends {ClassInfo.BaseType.Name!} ");
             }
+
             Output.WriteLine("{");
         }
 

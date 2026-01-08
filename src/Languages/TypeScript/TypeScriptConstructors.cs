@@ -68,7 +68,7 @@ namespace Z3
         private void GenerateConstructorParameter(MetadataMemberInfo member, bool isFirstParameter, bool isThisClass)
         {
             if (isFirstParameter)
-                this.FirstParameterName = BaseTypeConverter.ToJSONCase(member.Name!);
+                FirstParameterName = BaseTypeConverter.ToJSONCase(member.Name!);
             else
                 Output.Write(",");
 
