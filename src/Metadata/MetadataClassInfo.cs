@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Reflection.Metadata;
 using Zestien3;
 
@@ -31,6 +32,7 @@ namespace Z3
             typeDef = typeDefinition;
             Name = reader.GetString(typeDef.Name);
             Namespace = reader.GetString(typeDef.Namespace);
+            IsAbstract = typeDef.Attributes.HasFlag(TypeAttributes.Abstract);
 
             if (string.IsNullOrEmpty(Namespace) && assembly.ClassesByHandle.ContainsKey(typeDef.GetDeclaringType()))
             {
@@ -255,6 +257,8 @@ namespace Z3
         public bool IsArray => BaseTypeConverter.IsArray(Name);
 
         public bool IsGeneric => BaseTypeConverter.IsGeneric(Name);
+    
+        public bool IsAbstract { get; private set; }
 
         public byte? NullableContext { get; private set; }
 

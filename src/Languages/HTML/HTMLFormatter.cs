@@ -94,10 +94,14 @@ namespace Z3
             var baseClassName = null == ClassInfo!.BaseType ? "" : BaseTypeConverter.ToJSONCase(ClassInfo!.BaseType!.Name!);
             var baseClassSelector = null == ClassInfo!.BaseType ? "" : BaseTypeConverter.StripToMinimalName(ClassInfo.BaseType!.Name!);
 
-            Output.WriteLine($"@if (showTitle) {{ <h4 i18n=\"generic|{title}\"><b>{title}</b></h4> }}");
+            if (!ClassInfo.IsAbstract)
+                Output.WriteLine($"@if (showTitle) {{ <h4 i18n=\"generic|{title}\"><b>{title}</b></h4> }}");
             Output.WriteLine($"@if({className}) {{");
-            WriteIndent(1);
-            Output.WriteLine($"@if (showTitle) {{ <hr /> }}");
+            if (!ClassInfo.IsAbstract)
+            {
+                WriteIndent(1);
+                Output.WriteLine($"@if (showTitle) {{ <hr /> }}");
+            }
 
             if (!string.IsNullOrEmpty(baseClassSelector))
             {
@@ -187,6 +191,7 @@ namespace Z3
             }
 
             var fullName = $"{BaseTypeConverter.ToJSONCase(info.DefiningClass!.Name!)}.{BaseTypeConverter.ToJSONCase(info.Name!)}";
+            var noNgModel = info.IsArray || info.IsGeneric;
             WriteIndent(indent);
             Output.WriteLine("<div class=\"row\">");
             WriteIndent(indent + 1);
@@ -202,7 +207,9 @@ namespace Z3
                 {
                     classes += " form-check-input";
                 }
-                Output.Write($"<input class=\"{classes}\" {value}=\"{fullName}\"{change}");
+                Output.Write($"<input class=\"{classes}\")");
+                if (!noNgModel)
+                    Output.Write($" {value}=\"{fullName}\"{change}");
                 if (!string.IsNullOrEmpty(type))
                 {
                     Output.Write($" type=\"{type}\"");
@@ -211,8 +218,10 @@ namespace Z3
             }
             else
             {
-                Output.Write($"<{editor} [(ngModel)]=\"{fullName}\" ");
-                Output.WriteLine($"#{BaseTypeConverter.ToJSONCase(info.Name!)} id=\"{BaseTypeConverter.ToJSONCase(info.Name!)}\" ></{editor}>");
+                Output.Write($"<{editor} ");
+                if (!noNgModel)
+                    Output.Write("[(ngModel)]=\"{fullName}\" ");
+                Output.WriteLine($"#{BaseTypeConverter.ToJSONCase(info.Name!)} id=\"{BaseTypeConverter.ToJSONCase(info.Name!)}\"></{editor}>");
             }
 
             WriteIndent(indent + 1);
@@ -235,24 +244,27 @@ namespace Z3
             Output.WriteLine("</div>");
             Output.WriteLine("}");
 
-            Output.WriteLine("@if (showTitle) {");
-            WriteIndent(1);
-            Output.WriteLine("<div class=\"row\">");
-            WriteIndent(2);
-            Output.WriteLine("<div class=\"col-12\">");
-            WriteIndent(3);
-            Output.WriteLine("<br/>");
-            WriteIndent(3);
-            Output.WriteLine("<br/>");
-            WriteIndent(3);
-            Output.WriteLine("<button type=\"button\" class=\"btn btn-danger\" (click)=\"clickedCancel()\" i18n=\"generic|Cancel\">Cancel</button>");
-            WriteIndent(3);
-            Output.WriteLine("<button type=\"button\" class=\"btn btn-success float-right\" (click)=\"clickedOK()\" i18n=\"generic|OK\">OK</button>");
-            WriteIndent(2);
-            Output.WriteLine("</div>");
-            WriteIndent(1);
-            Output.WriteLine("</div>");
-            Output.WriteLine("}");
+            if (!ClassInfo!.IsAbstract)
+            {
+                Output.WriteLine("@if (showTitle) {");
+                WriteIndent(1);
+                Output.WriteLine("<div class=\"row\">");
+                WriteIndent(2);
+                Output.WriteLine("<div class=\"col-12\">");
+                WriteIndent(3);
+                Output.WriteLine("<br/>");
+                WriteIndent(3);
+                Output.WriteLine("<br/>");
+                WriteIndent(3);
+                Output.WriteLine("<button type=\"button\" class=\"btn btn-danger\" (click)=\"clickedCancel()\" i18n=\"generic|Cancel\">Cancel</button>");
+                WriteIndent(3);
+                Output.WriteLine("<button type=\"button\" class=\"btn btn-success float-right\" (click)=\"clickedOK()\" i18n=\"generic|OK\">OK</button>");
+                WriteIndent(2);
+                Output.WriteLine("</div>");
+                WriteIndent(1);
+                Output.WriteLine("</div>");
+                Output.WriteLine("}");
+            }
        }
 
         protected override void CloseNamespace()
