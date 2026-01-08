@@ -5,7 +5,7 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      "program": "${workspaceFolder}/bin/Debug/net8.0/ConvertCSDataModel.dll",
+      "program": "${workspaceFolder}/bin/Debug/net10.0/ConvertCSDataModel.dll",
       "args": [
 //*
         "-a",
@@ -14,7 +14,7 @@
         "TimeTracker.Models.Invoice.CreateOutgoingInvoiceModel",
 //*/
         "-f",
-        "D:/Data/Git/TimeTracker/BackEnd/bin/Debug/net8.0/TimeTracker.dll",
+        "D:/Data/Git/TimeTracker/BackEnd/bin/Debug/net10.0/TimeTracker.dll",
         "-o",
         "D:/Data/Git/TimeTracker/FrontEnd/src/app/data"
       ],
@@ -27,7 +27,7 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      "program": "${workspaceFolder}/bin/Debug/net8.0/ConvertCSDataModel.dll",
+      "program": "${workspaceFolder}/bin/Debug/net10.0/ConvertCSDataModel.dll",
       "args": [
         "demo",
         "-a",

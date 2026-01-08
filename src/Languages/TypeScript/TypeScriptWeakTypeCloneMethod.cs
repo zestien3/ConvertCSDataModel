@@ -24,23 +24,9 @@ namespace Z3
         {
             if (!ClassInfo.IsEnum)
             {
-                var c = ClassInfo;
-                var classInheritance = new List<MetadataClassInfo>();
-                var membersToSkip = new List<string>();
-
-                while (null != c)
-                {
-                    // Construct a list of all base classes.
-                    classInheritance.Add(c);
-                    c = c.BaseType;
-                }
-
-                // We start with the parameters of the topmost base class.
-                classInheritance.Reverse();
-
                 CreateMethodSignature();
 
-                CreateMethodContent(classInheritance);
+                CreateMethodContent();
             }
         }
 
@@ -49,11 +35,17 @@ namespace Z3
             Output.WriteLine();
             Formatter.WriteIndent(1);
             Output.WriteLine("public CopyFromWeakType(other: any): void {");
+
+            if (null != ClassInfo.BaseType)
+            {
+                Formatter.WriteIndent(2);
+                Output.WriteLine("super.CopyFromWeakType(other);");
+            }
         }
 
-        private void CreateMethodContent(List<MetadataClassInfo> classInheritance)
+        private void CreateMethodContent()
         {
-            CreateCodeToCopyFromOther(classInheritance);
+            CreateCodeToCopyFromOther([ClassInfo] );
 
             Formatter.WriteIndent(1);
             Output.WriteLine("}");

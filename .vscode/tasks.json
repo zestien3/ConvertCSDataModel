@@ -46,7 +46,7 @@
         "Copy-Item",
         "-Verbose",
         "-Path",
-        "${workspaceFolder}\\bin\\Release\\net8.0\\win-x64\\publish\\*.*",
+        "${workspaceFolder}\\bin\\Release\\net10.0\\win-x64\\publish\\*.*",
         "-Include",
         "*.exe,*.dll,*.xml,*.runtimeconfig.json",
         "-Destination",
