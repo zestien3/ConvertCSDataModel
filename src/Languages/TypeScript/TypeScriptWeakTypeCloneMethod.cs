@@ -59,9 +59,12 @@ namespace Z3
                 {
                     foreach (var member in classInfo.Members)
                     {
-                        var parameterName = BaseTypeConverter.ToJSONCase(member.Name!);
-                        Formatter.WriteIndent(2);
-                        Output.WriteLine($"this.{parameterName} = other.{parameterName};");
+                        if (!member.DontSerialize)
+                        {
+                            var parameterName = BaseTypeConverter.ToJSONCase(member.Name!);
+                            Formatter.WriteIndent(2);
+                            Output.WriteLine($"this.{parameterName} = other.{parameterName};");
+                        }
                     }
                 }
             }

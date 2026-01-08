@@ -112,7 +112,11 @@ namespace Z3
         {
             if (new TypeScriptConstructors(ClassInfo!, this, Converter, Output).CreateConstructor())
             {
-                WriteMemberInfo(ClassInfo!.Members[0]);
+                var firstMember = ClassInfo!.Members.FirstOrDefault(m => !m.DontSerialize);
+                if (null != firstMember)
+                {
+                    WriteMemberInfo(firstMember);
+                }
             }
         }
 

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
@@ -9,6 +10,8 @@ namespace Z3
 {
     internal class HTMLFormatter : BaseFormatter
     {
+        private string previousCategory = string.Empty;
+
         /// <summary>
         /// Create an instance of the <see cref="HTMLFormatter"/> class.
         /// </summary>
@@ -92,10 +95,10 @@ namespace Z3
 
             var className = BaseTypeConverter.ToJSONCase(ClassInfo!.Name!);
             var baseClassName = null == ClassInfo!.BaseType ? "" : BaseTypeConverter.ToJSONCase(ClassInfo!.BaseType!.Name!);
-            var baseClassSelector = null == ClassInfo!.BaseType ? "" : BaseTypeConverter.StripToMinimalName(ClassInfo.BaseType!.Name!);
+            var baseClassSelector = null == ClassInfo!.BaseType ? "" : BaseTypeConverter.StripToMinimalName(ClassInfo.BaseType!.Name!).Replace(" ", "-");
 
             if (!ClassInfo.IsAbstract)
-                Output.WriteLine($"@if (showTitle) {{ <h4 i18n=\"generic|{title}\"><b>{title}</b></h4> }}");
+                Output.WriteLine($"@if (showTitle) {{ <h4 i18n=\"edit|{title}\"><b>{title}</b></h4> }}");
             Output.WriteLine($"@if({className}) {{");
             if (!ClassInfo.IsAbstract)
             {
@@ -122,11 +125,6 @@ namespace Z3
                 }
                 Output.WriteLine($"></app-edit-{baseClassSelector}>");
             }
-
-            WriteIndent(1);
-            Output.WriteLine("<div class=\"row\">");
-            WriteIndent(2);
-            Output.WriteLine("<div class=\"col-12\">");
         }
 
         protected override void WriteConstructor()
@@ -136,9 +134,22 @@ namespace Z3
 
         protected override void WriteMembers()
         {
-            foreach (var memberInfo in ClassInfo!.Members)
+            if (ClassInfo!.Members.Count > 0)
             {
-                WriteMemberInfo(memberInfo);
+                WriteIndent(1);
+                Output.WriteLine("<div class=\"row\">");
+                WriteIndent(2);
+                Output.WriteLine("<div class=\"col-12\">");
+
+                foreach (var memberInfo in ClassInfo!.Members)
+                {
+                    WriteMemberInfo(memberInfo);
+                }
+
+                WriteIndent(2);
+                Output.WriteLine("</div>");
+                WriteIndent(1);
+                Output.WriteLine("</div>");
             }
         }
 
@@ -149,6 +160,8 @@ namespace Z3
 
         private void WriteMemberInfo(MetadataMemberInfo info)
         {
+            var indent = 3;
+
             var addHideOptionForMember = ClassInfo!.Any(c =>
                 {
                     if (c.UseInFrontend.ContainsKey(Language.HTML))
@@ -159,11 +172,33 @@ namespace Z3
                     return false;
                 });
 
-            var indent = 3;
+            var category = string.Empty;
+            if (info.Attributes.ContainsKey(nameof(CategoryAttribute)))
+            {
+                category = (string)info.Attributes[nameof(CategoryAttribute)].FixedArguments[0].Value!;
+            }
+
+            if (info.Attributes.ContainsKey(nameof(PropertyTabAttribute)))
+            {
+                if (!string.IsNullOrEmpty(category) && (category == previousCategory))
+                {
+                    throw new ArgumentException("Cannot set a PropertyTab in the middle of a category");                    
+                }
+
+                var tab = (string) info.Attributes[nameof(PropertyTabAttribute)].FixedArguments[0].Value!;
+                WriteIndent(indent);
+                Output.WriteLine("<div class=\"row\">");
+                WriteIndent(indent + 1);
+                Output.WriteLine($"<label class=\"col-4 category\" i18n=\"edit|{tab}\">{tab}</label>");
+                WriteIndent(indent + 1);
+                Output.WriteLine("<div class=\"col-8\"><hr></div>");
+                WriteIndent(indent);
+                Output.WriteLine("</div>");
+            }
+
             if (addHideOptionForMember)
             {
-                indent++;
-                WriteIndent(3);
+                WriteIndent(indent++);
                 Output.WriteLine($"@if (!hide{info.Name}) {{");
             }
 
@@ -171,9 +206,8 @@ namespace Z3
             var value = "[(ngModel)]";
             var change = "";
 
-            if (type == "File")
+            if (type == "file")
             {
-                value = "(value)";
                 change = " (change)=\"fileChanged($event)\"";
             }
 
@@ -192,14 +226,18 @@ namespace Z3
 
             var fullName = $"{BaseTypeConverter.ToJSONCase(info.DefiningClass!.Name!)}.{BaseTypeConverter.ToJSONCase(info.Name!)}";
             var noNgModel = info.IsArray || info.IsGeneric;
-            WriteIndent(indent);
-            Output.WriteLine("<div class=\"row\">");
-            WriteIndent(indent + 1);
-            Output.WriteLine($"<label class=\"col-4\" i18n=\"edit|{label}\">{label}</label>");
-            WriteIndent(indent + 1);
-            Output.WriteLine("<div class=\"col-8\">");
-            WriteIndent(indent + 2);
 
+            if (string.IsNullOrEmpty(previousCategory))
+            {
+                WriteIndent(indent);
+                Output.WriteLine("<div class=\"row\">");
+                WriteIndent(indent + 1);
+                Output.WriteLine($"<label class=\"col-4\" i18n=\"edit|{label}\">{label}</label>");
+                WriteIndent(indent + 1);
+                Output.WriteLine($"<div class=\"col-8{(string.IsNullOrEmpty(category) ? "" : $" category-{category.ToLower().Replace(" ", "-")}")}\">");
+            }
+
+            WriteIndent(indent + 2);
             if (editor == "input")
             {
                 var classes = "form-control";
@@ -224,33 +262,34 @@ namespace Z3
                 Output.WriteLine($"#{BaseTypeConverter.ToJSONCase(info.Name!)} id=\"{BaseTypeConverter.ToJSONCase(info.Name!)}\"></{editor}>");
             }
 
-            WriteIndent(indent + 1);
-            Output.WriteLine("</div>");
-            WriteIndent(indent);
-            Output.WriteLine("</div>");
+            if (string.IsNullOrEmpty(category))
+            {
+                WriteIndent(indent + 1);
+                Output.WriteLine("</div>");
+                WriteIndent(indent);
+                Output.WriteLine("</div>");
+            }
 
             if (addHideOptionForMember)
             {
                 WriteIndent(3);
                 Output.WriteLine("}");
             }
+
+            previousCategory = category;
         }
 
         protected override void CloseClass()
         {
-            WriteIndent(2);
-            Output.WriteLine("</div>");
-            WriteIndent(1);
-            Output.WriteLine("</div>");
             Output.WriteLine("}");
 
             if (!ClassInfo!.IsAbstract)
             {
-                Output.WriteLine("@if (showTitle) {");
+                Output.WriteLine("@if (showTitle || showButtons) {");
                 WriteIndent(1);
                 Output.WriteLine("<div class=\"row\">");
                 WriteIndent(2);
-                Output.WriteLine("<div class=\"col-12\">");
+                Output.WriteLine("<div class=\"offset-4 col-8\">");
                 WriteIndent(3);
                 Output.WriteLine("<br/>");
                 WriteIndent(3);

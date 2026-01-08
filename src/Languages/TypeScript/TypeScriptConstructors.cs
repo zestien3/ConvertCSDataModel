@@ -54,6 +54,14 @@ namespace Z3
 
         private void FindMembersToSkip(MetadataClassInfo classInfo, List<string> membersToSkip)
         {
+            foreach (var member in classInfo.Members)
+            {
+                if (member.DontSerialize)
+                {
+                    membersToSkip.Add(member.Name!);
+                }
+            }
+
             var doubleNames = classInfo.FixedConstructionParameters.Keys.Where(name => membersToSkip.Contains(name));
             foreach (var doubleName in doubleNames)
                 Console.Error.WriteLine($"Can not set the fixed construction parameter for '{doubleName}' as it is already set in {classInfo.Name}");
@@ -169,7 +177,7 @@ namespace Z3
 
         private void CreateCodeToCopyFromOther()
         {
-            if (ClassInfo.Members.Count > 0)
+            if (ClassInfo.Members.Any(m => !m.DontSerialize))
             {
                 Formatter.WriteIndent(2);
                 Output.WriteLine($"if (null != {FirstParameterName}) {{");

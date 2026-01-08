@@ -159,7 +159,7 @@ namespace Z3
                 {
                     var propertyInfo = new MetadataMemberInfo(Reader!.GetPropertyDefinition(propertyHandle), this, Reader, XmlDoc);
                     propertyInfo.AllClassesLoaded(this, 1);
-                    if (!propertyInfo.DontSerialize && (propertyInfo.Visibility != Visibility.Private))
+                    if (propertyInfo.Visibility != Visibility.Private)
                     {
                         members.Add(propertyInfo);
                     }
