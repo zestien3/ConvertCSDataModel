@@ -6,7 +6,8 @@
       "type": "shell",
       "args": [
         "build",
-        "${workspaceFolder}\\ConvertCSDataModel.csproj"
+        "${workspaceFolder}\\ConvertCSDataModel.csproj",
+        "--no-restore"
       ],
       "group": {
         "kind": "build",
@@ -26,7 +27,8 @@
         "Release",
         "-r",
         "win-x64",
-        "${workspaceFolder}\\ConvertCSDataModel.csproj"
+        "${workspaceFolder}\\ConvertCSDataModel.csproj",
+        "--no-restore"
       ],
       "group": {
         "kind": "build",
