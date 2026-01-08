@@ -207,7 +207,7 @@ namespace Z3
                 {
                     classes += " form-check-input";
                 }
-                Output.Write($"<input class=\"{classes}\")");
+                Output.Write($"<input class=\"{classes}\"");
                 if (!noNgModel)
                     Output.Write($" {value}=\"{fullName}\"{change}");
                 if (!string.IsNullOrEmpty(type))
