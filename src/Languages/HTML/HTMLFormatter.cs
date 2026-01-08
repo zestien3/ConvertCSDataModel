@@ -220,7 +220,7 @@ namespace Z3
             {
                 Output.Write($"<{editor} ");
                 if (!noNgModel)
-                    Output.Write("[(ngModel)]=\"{fullName}\" ");
+                    Output.Write($"[(ngModel)]=\"{fullName}\" ");
                 Output.WriteLine($"#{BaseTypeConverter.ToJSONCase(info.Name!)} id=\"{BaseTypeConverter.ToJSONCase(info.Name!)}\"></{editor}>");
             }
 
