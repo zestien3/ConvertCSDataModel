@@ -39,7 +39,7 @@ namespace Z3
                                                                       "int64", "uint64", "single", "double",
                                                                       "string", "typedReference", "IntPtr", "UIntPtr", "object",
                                                                       "System.DateTime", "System.DateOnly", "System.Guid", "System.Enum",
-                                                                      "Microsoft.AspNetCore.Http.IFormFile" };
+                                                                      "Microsoft.AspNetCore.Http.IFormFile", "System.Drawing.Color" };
 
         /// <summary>
         /// Convert the given C# type to a type for the language for which this converter is designed.

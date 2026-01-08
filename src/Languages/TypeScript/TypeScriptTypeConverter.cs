@@ -17,14 +17,14 @@ namespace Z3
                                                                       "number", "number", "number", "number",
                                                                       "string", "<TYPEDREFERENCE>", "<INTPTR>", "<UINTPTR>",
                                                                       "unknown", "Date", "Date", "string",
-                                                                      "Enum", "File" };
+                                                                      "Enum", "File", "string" };
 
         public static readonly List<string> tsStandardTypeValues = new() { "null", "false", "0", "0", "0",
                                                                            "0", "0", "0", "0",
                                                                            "0", "0", "0", "0",
                                                                            "\"\"", "<TYPEDREFERENCE>", "<INTPTR>", "<UINTPTR>",
                                                                            "undefined", "new Date()", "new Date()", "\"00000000-0000-0000-0000-000000000000\"",
-                                                                           "0", "new File()" };
+                                                                           "0", "new File()", "\"black\"" };
 
         private static readonly List<string> tsGenericArrayTypes = new() { BaseTypeConverter.GetGenericType(typeof(List<int>).FullName!),
                                                                            BaseTypeConverter.GetGenericType(typeof(IReadOnlyList<int>).FullName!),

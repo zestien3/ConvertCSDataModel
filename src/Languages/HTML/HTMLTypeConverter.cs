@@ -13,7 +13,8 @@ namespace Z3
                                                                      "number", "number", "number", "number",
                                                                      "number", "number", "number", "number",
                                                                      "text", "", "", "", "",
-                                                                     "date", "date", "text", "Enum", "file" };
+                                                                     "date", "date", "text", "Enum", "file",
+                                                                     "color" };
         public HTMLTypeConverter()
         {
             if (htmlInputTypes.Count != csStandardTypes.Count)
