@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using Zestien3;
+using Zestien3.ConvertCSDataModel;
 
 namespace Z3
 {
@@ -13,7 +14,7 @@ namespace Z3
                 outputFolder = string.Empty;
             }
 
-            foreach (var useInFrontend in classInfo.UseInFrontend.Values)
+            foreach (var useInFrontend in classInfo.UseInFrontend)
             {
                 string fileName = "";
                 switch (useInFrontend.Language)
@@ -31,7 +32,15 @@ namespace Z3
                         fileName = HTMLTypeConverter.GetFileNameFromClass(classInfo, useInFrontend.SubFolder);
                         {
                             using TextWriter writer = GetTextWriter(outputFolder, fileName);
-                            new HTMLFormatter(classInfo.ContainingAssembly!, writer).FormatClass(classInfo, useInFrontend);
+                            switch (useInFrontend.DialogType)
+                            {
+                                case DialogType.Standard:
+                                    new HTMLStandardFormatter(classInfo.ContainingAssembly!, writer).FormatClass(classInfo, useInFrontend);
+                                    break;
+                                case DialogType.Compact:
+                                    new HTMLCompactFormatter(classInfo.ContainingAssembly!, writer).FormatClass(classInfo, useInFrontend);
+                                    break;
+                            }
                         }
                         break;
                 }

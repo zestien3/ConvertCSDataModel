@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 
 using Zestien3;
+using Zestien3.ConvertCSDataModel;
 
 namespace Z3
 {
@@ -13,6 +14,7 @@ namespace Z3
         protected string previousCategory = string.Empty;
         protected int buttonSectionOffset = 0;
         protected int buttonSectionWidth = 12;
+        protected DialogType dialogType;
 
         /// <summary>
         /// Create an instance of the <see cref="HTMLFormatter"/> class.
@@ -112,12 +114,8 @@ namespace Z3
             {
                 var hiddenProperties = ClassInfo.Select<string>(c =>
                 {
-                    if (c.UseInFrontend.ContainsKey(Language.HTML))
-                    {
-                        return c.UseInFrontend[Language.HTML].HiddenProperties;
-                    }
-
-                    return [];
+                    var uif = c.UseInFrontend.FirstOrDefault(u => (u.Language == Language.HTML) && u.DialogType == dialogType);
+                    return uif?.HiddenProperties ?? [];
                 });
                 WriteIndent(1);
                 Output.Write($"<app-edit-{baseClassSelector} [{baseClassName}]=\"{className}\" [showTitle]=\"false\"");
@@ -139,7 +137,7 @@ namespace Z3
             if (ClassInfo!.Members.Count > 0)
             {
                 WriteIndent(1);
-                Output.WriteLine("<div class=\"row\">");
+                Output.WriteLine("<div class=\"row top-of-dialog\">");
                 WriteIndent(2);
                 Output.WriteLine("<div class=\"col-12\">");
 

@@ -1,17 +1,7 @@
 .idea
-bin/**
-obj/**
-*.user
-*.log
-appsettings.json
-*/node_modules/**
-*/.angular/**
-.npmrc
-wwwroot/**
-/appsettings.Debug.json
-/appsettings.Release.json
-/google-key-file.json
+*/bin/**
+*/obj/**
+*/*.user
+*/*.log
 
-FrontEnd/dist/**
-BackEnd/wwwroot.old/**
 *.binlog

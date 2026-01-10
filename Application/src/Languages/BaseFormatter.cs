@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using Zestien3;
+using Zestien3.ConvertCSDataModel;
 
 namespace Z3
 {
@@ -95,12 +95,14 @@ namespace Z3
                         if (!ReferencedFiles.Contains(type) && !Converter.IsStandardType(type))
                         {
                             ReferencedFiles.Add(type);
-                            if (member.DefiningClass!.UseInFrontend.ContainsKey(UseInFrontend.Language))
+
+                            var uif = member.DefiningClass!.UseInFrontend.FirstOrDefault(u => (u.Language == UseInFrontend.Language) && u.DialogType == UseInFrontend.DialogType);
+                            if (null != uif)
                             {
                                 WriteFileReference(
                                     type,
                                     Converter.GetFileNameForReference(member.ImplementedClass!),
-                                    member.DefiningClass!.UseInFrontend[UseInFrontend.Language].SubFolder!);
+                                    uif!.SubFolder!);
                             }
                         }
                     }

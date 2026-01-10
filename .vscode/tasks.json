@@ -6,7 +6,7 @@
         "type": "shell",
         "args": [
             "build",
-            "${workspaceFolder}\\ConvertCSDataModel.csproj",
+            "${workspaceFolder}/ConvertCSDataModel.sln",
             "--no-restore"
         ],
         "group": {
@@ -27,7 +27,7 @@
             "Release",
             "-r",
             "win-x64",
-            "${workspaceFolder}\\ConvertCSDataModel.csproj"
+            "${workspaceFolder}/Application/ConvertCSDataModel.csproj"
         ],
         "group": {
             "kind": "build",
@@ -43,7 +43,7 @@
         "type": "shell",
         "args": [
             "restore",
-            "${workspaceFolder}\\ConvertCSDataModel.csproj"
+            "${workspaceFolder}/Application/ConvertCSDataModel.csproj"
         ],
         "problemMatcher": [
             "$msCompile"
@@ -59,11 +59,11 @@
             "Copy-Item",
             "-Verbose",
             "-Path",
-            "${workspaceFolder}\\bin\\Release\\net10.0\\win-x64\\publish\\*.*",
+            "${workspaceFolder}/Application/bin/Release/net10.0/win-x64/publish/*.*",
             "-Include",
             "*.exe,*.dll,*.xml,*.runtimeconfig.json",
             "-Destination",
-            "C:\\Users\\Peter\\.dotnet\\tools\\"
+            "C:/Users/Peter/.dotnet/tools/"
         ],
         "group": {
             "kind": "build",

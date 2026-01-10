@@ -189,9 +189,20 @@ namespace Z3
 
                 foreach (var member in ClassInfo.Members)
                 {
-                    var parameterName = BaseTypeConverter.ToJSONCase(member.Name!);
-                    Formatter.WriteIndent(4);
-                    Output.WriteLine($"this.{parameterName} = {FirstParameterName}.{parameterName};");
+                    if (BaseTypeConverter.csStandardTypes.Contains(member.ImplementedClass?.Name ?? ""))
+                    {
+                        var parameterName = BaseTypeConverter.ToJSONCase(member.Name!);
+                        Formatter.WriteIndent(4);
+                        Output.WriteLine($"this.{parameterName} = {FirstParameterName}.{parameterName};");
+                    }
+                    else
+                    {
+                        var parameterName = BaseTypeConverter.ToJSONCase(member.Name!);
+                        Formatter.WriteIndent(4);
+                        Output.WriteLine($"this.{parameterName} = new {member.ImplementedClass!.Name!}();");
+                        Formatter.WriteIndent(4);
+                        Output.WriteLine($"this.{parameterName}.CopyFromWeakType({FirstParameterName}.{parameterName});");
+                    }
                 }
 
                 Formatter.WriteIndent(3);

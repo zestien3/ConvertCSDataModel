@@ -61,9 +61,20 @@ namespace Z3
                     {
                         if (!member.DontSerialize)
                         {
-                            var parameterName = BaseTypeConverter.ToJSONCase(member.Name!);
-                            Formatter.WriteIndent(2);
-                            Output.WriteLine($"this.{parameterName} = other.{parameterName};");
+                            if (BaseTypeConverter.csStandardTypes.Contains(member.ImplementedClass?.Name ?? ""))
+                            {
+                                var parameterName = BaseTypeConverter.ToJSONCase(member.Name!);
+                                Formatter.WriteIndent(2);
+                                Output.WriteLine($"this.{parameterName} = other.{parameterName};");
+                            }
+                            else
+                            {
+                                var parameterName = BaseTypeConverter.ToJSONCase(member.Name!);
+                                Formatter.WriteIndent(2);
+                                Output.WriteLine($"this.{parameterName} = new {member.ImplementedClass!.Name!}();");
+                                Formatter.WriteIndent(2);
+                                Output.WriteLine($"this.{parameterName}.CopyFromWeakType(other.{parameterName});");
+                            }
                         }
                     }
                 }

@@ -5,20 +5,22 @@ using System.IO;
 using System.Linq;
 
 using Zestien3;
+using Zestien3.ConvertCSDataModel;
 
 namespace Z3
 {
-    internal class HTMLCompactFormatter : HTMLFormatter
+    internal class HTMLStandardFormatter : HTMLFormatter
     {
         /// <summary>
         /// Create an instance of the <see cref="HTMLFormatter"/> class.
         /// </summary>
         /// <param name="assemblyInfo">The assembly for which we create the output.</param>
         /// <param name="output">The output to which the type script code must be written.</param>
-        public HTMLCompactFormatter(MetadataAssemblyInfo assemblyInfo, TextWriter output) : base(assemblyInfo, output)
+        public HTMLStandardFormatter(MetadataAssemblyInfo assemblyInfo, TextWriter output) : base(assemblyInfo, output)
         {
-            buttonSectionOffset = 3;
-            buttonSectionWidth = 6;
+            buttonSectionOffset = 4;
+            buttonSectionWidth = 8;
+            dialogType = DialogType.Standard;
         }
 
         protected override void WriteMemberInfo(MetadataMemberInfo info)
@@ -27,12 +29,8 @@ namespace Z3
 
             var addHideOptionForMember = ClassInfo!.Any(c =>
                 {
-                    if (c.UseInFrontend.ContainsKey(Language.HTML))
-                    {
-                        return c.UseInFrontend[Language.HTML]!.HiddenProperties.Contains(info.Name!);
-                    }
-
-                    return false;
+                    var uif = c.UseInFrontend.FirstOrDefault(u => (u.Language == Language.HTML) && u.DialogType == dialogType);
+                    return uif?.HiddenProperties.Contains(info.Name!) ?? false;
                 });
 
             var category = string.Empty;

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
 using Zestien3;
+using Zestien3.ConvertCSDataModel;
 
 namespace Z3
 {
@@ -18,8 +19,6 @@ namespace Z3
         protected MetadataClassInfo(string type) : base(null, null)
         {
             Logger.LogDebug($"Undefined or anonymous class found: {type}");
-
-            UseInFrontend = new();
 
             ContainingAssembly = null;
             Name = type;
@@ -78,25 +77,27 @@ namespace Z3
                 {
                     subFolder = new(nameof(UseInFrontendAttribute.SubFolder), CustomAttributeNamedArgumentKind.Property, "string", ".");
                 }
-
                 if (!attribute.NamedArguments.TryGetValue(nameof(UseInFrontendAttribute.HiddenProperties), out var hidden))
                 {
                     string[] value = [];
                     hidden = new(nameof(UseInFrontendAttribute.HiddenProperties), CustomAttributeNamedArgumentKind.Property, "string[]", value);
                 }
+                attribute.NamedArguments.TryGetValue(nameof(UseInFrontendAttribute.DialogType), out var dialogType);
 
-                UseInFrontend[(Language)language.Value!] =
-                    new()
+                UseInFrontendAttribute uif = new()
                     {
                         SubFolder = (string)subFolder.Value!,
                         Language = (Language)language.Value!,
-                        HiddenProperties = []
+                        HiddenProperties = [],
+                        DialogType = (DialogType)(dialogType.Value ?? DialogType.Standard)
                     };
 
                 foreach (var hiddenProperty in (IEnumerable)hidden.Value!)
                 {
-                    UseInFrontend[(Language)language.Value!].HiddenProperties.Add((string)((CustomAttributeTypedArgument<string>)hiddenProperty).Value!);
+                    uif.HiddenProperties.Add((string)((CustomAttributeTypedArgument<string>)hiddenProperty).Value!);
                 }
+
+                UseInFrontend.Add(uif);
             }
 
             if (attribute.Name == nameof(FixedParameterValueAttribute))
@@ -273,7 +274,7 @@ namespace Z3
 
         public byte? NullableContext { get; private set; }
 
-        public Dictionary<Language, UseInFrontendAttribute> UseInFrontend { get; private set; } = [];
+        public List<UseInFrontendAttribute> UseInFrontend { get; private set; } = [];
         
         public Dictionary<string, string> FixedConstructionParameters { get; private set; } = [];
     }

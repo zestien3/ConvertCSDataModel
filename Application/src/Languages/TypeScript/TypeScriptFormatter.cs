@@ -72,9 +72,10 @@ namespace Z3
         {
             if (AssemblyInfo.ClassesByName.TryGetValue(className, out var classInfo))
             {
-                if (classInfo.UseInFrontend.ContainsKey(UseInFrontend!.Language))
+                var uif = classInfo.UseInFrontend.FirstOrDefault(u => u.Language == UseInFrontend?.Language);
+                if (null != uif)
                 {
-                    var subFolder = ".\\" + classInfo.UseInFrontend[UseInFrontend.Language].SubFolder!;
+                    var subFolder = ".\\" + uif!.SubFolder!;
 
                     subFolder = Path.GetRelativePath(currentSubFolder, subFolder).Replace("\\", "/");
 

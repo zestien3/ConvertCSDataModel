@@ -1,0 +1,35 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.2.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ConvertCSDataModel", "ConvertCSDataModel", "{A74F262E-BDE7-D5D2-89E9-785413424D0A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Attributes", "d:\Data\GIT\ConvertCSDataModel\Attributes\Attributes.csproj", "{82023940-E06E-85BA-374E-52033EEFDCC3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Application", "d:\Data\GIT\ConvertCSDataModel\Application\ConvertCSDataModel.csproj", "{3B113ABA-8188-9754-1D20-8D419E4E6008}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{82023940-E06E-85BA-374E-52033EEFDCC3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{82023940-E06E-85BA-374E-52033EEFDCC3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{82023940-E06E-85BA-374E-52033EEFDCC3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{82023940-E06E-85BA-374E-52033EEFDCC3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3B113ABA-8188-9754-1D20-8D419E4E6008}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3B113ABA-8188-9754-1D20-8D419E4E6008}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3B113ABA-8188-9754-1D20-8D419E4E6008}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3B113ABA-8188-9754-1D20-8D419E4E6008}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{3B113ABA-8188-9754-1D20-8D419E4E6008} = {A74F262E-BDE7-D5D2-89E9-785413424D0A}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {1AD7CC38-BB96-4632-83C1-E3888AA687EB}
+	EndGlobalSection
+EndGlobal

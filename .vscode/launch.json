@@ -5,7 +5,7 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      "program": "${workspaceFolder}/bin/Debug/net10.0/ConvertCSDataModel.dll",
+      "program": "${workspaceFolder}/Application/bin/Debug/net10.0/ConvertCSDataModel.exe",
       "args": [
 //*
         "-a",
@@ -27,7 +27,7 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      "program": "${workspaceFolder}/bin/Debug/net10.0/ConvertCSDataModel.dll",
+      "program": "${workspaceFolder}/Application/bin/Debug/net10.0/ConvertCSDataModel.dll",
       "args": [
         "demo",
         "-a",
