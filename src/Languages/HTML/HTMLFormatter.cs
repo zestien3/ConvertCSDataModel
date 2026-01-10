@@ -182,14 +182,14 @@ namespace Z3
             {
                 if (!string.IsNullOrEmpty(category) && (category == previousCategory))
                 {
-                    throw new ArgumentException("Cannot set a PropertyTab in the middle of a category");                    
+                    throw new ArgumentException("Cannot set a PropertyTab in the middle of a Category");                    
                 }
 
                 var tab = (string) info.Attributes[nameof(PropertyTabAttribute)].FixedArguments[0].Value!;
                 WriteIndent(indent);
                 Output.WriteLine("<div class=\"row\">");
                 WriteIndent(indent + 1);
-                Output.WriteLine($"<label class=\"col-4 category\" i18n=\"edit|{tab}\">{tab}</label>");
+                Output.WriteLine($"<label class=\"col-4 section\" i18n=\"edit|{tab}\">{tab}</label>");
                 WriteIndent(indent + 1);
                 Output.WriteLine("<div class=\"col-8\"><hr></div>");
                 WriteIndent(indent);

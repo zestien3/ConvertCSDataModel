@@ -24,7 +24,7 @@ namespace Z3
                                                                            "0", "0", "0", "0",
                                                                            "\"\"", "<TYPEDREFERENCE>", "<INTPTR>", "<UINTPTR>",
                                                                            "undefined", "new Date()", "new Date()", "\"00000000-0000-0000-0000-000000000000\"",
-                                                                           "0", "new File()", "\"black\"" };
+                                                                           "0", "new File()", "\"#000000\"" };
 
         private static readonly List<string> tsGenericArrayTypes = new() { BaseTypeConverter.GetGenericType(typeof(List<int>).FullName!),
                                                                            BaseTypeConverter.GetGenericType(typeof(IReadOnlyList<int>).FullName!),

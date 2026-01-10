@@ -89,7 +89,7 @@ namespace Z3
             {
                 foreach (var member in bt.Members)
                 {
-                    if (bt.FullName != member.Type!)
+                    if ((bt.FullName != member.Type!) && !member.DontSerialize)
                     {
                         var type = BaseTypeConverter.StripToBareType(member.Type!);
                         if (!ReferencedFiles.Contains(type) && !Converter.IsStandardType(type))
