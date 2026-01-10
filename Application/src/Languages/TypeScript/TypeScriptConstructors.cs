@@ -109,7 +109,6 @@ namespace Z3
             {
                 var lastClass = ci == classInheritance.Last();
                 foreach (var member in ci.Members)
-                    // GenerateConstructorParameters
                     if (!membersToSkip.Contains(member.Name!) && !ClassInfo.FixedConstructionParameters.ContainsKey(member.Name!))
                     {
                         GenerateConstructorParameter(member, firstParameter, lastClass);
@@ -199,9 +198,25 @@ namespace Z3
                     {
                         var parameterName = BaseTypeConverter.ToJSONCase(member.Name!);
                         Formatter.WriteIndent(4);
-                        Output.WriteLine($"this.{parameterName} = new {member.ImplementedClass!.Name!}();");
-                        Formatter.WriteIndent(4);
-                        Output.WriteLine($"this.{parameterName}.CopyFromWeakType({FirstParameterName}.{parameterName});");
+                        Output.WriteLine($"this.{parameterName}{Converter.GetDefaultMemberValue(member)};");
+                        if (member.IsArray || member.IsGeneric)
+                        {
+                            Formatter.WriteIndent(4);
+                            Output.WriteLine($"for (let x of {FirstParameterName}.{parameterName}) {{");
+                            Formatter.WriteIndent(5);
+                            Output.WriteLine($"let newX{Converter.GetDefaultMemberValue(member, true)};");
+                            Formatter.WriteIndent(5);
+                            Output.WriteLine($"newX.CopyFromWeakType(x);");
+                            Formatter.WriteIndent(5);
+                            Output.WriteLine($"this.{parameterName}.push(newX);");
+                            Formatter.WriteIndent(4);
+                            Output.WriteLine("}");
+                        }
+                        else
+                        {
+                            Formatter.WriteIndent(4);
+                            Output.WriteLine($"this.{parameterName}.CopyFromWeakType({FirstParameterName}.{parameterName});");
+                        }
                     }
                 }
 

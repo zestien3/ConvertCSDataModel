@@ -107,11 +107,14 @@ namespace Z3
         /// It can be used in definitions of members or in defining constructors.
         /// </remarks>
         /// <param name="member">The member for which the default value is requested.</param>
+        /// <param name="ignoreArray">If the member is an array, the generated code will not create an array, but a single instance of the type.</param>
         /// <returns>A string containing the default value of the member, preceded by " = ".</returns>
-        public override string GetDefaultMemberValue(MetadataMemberInfo member)
+        public override string GetDefaultMemberValue(MetadataMemberInfo member, bool ignoreArray = false)
         {
             var result = new StringBuilder();
             var type = null == member.ImplementedClass ? member.Type! : ConvertType(member);
+            if (ignoreArray && type.EndsWith("[]"))
+                type = type[..^2];
 
             result.Append(" = ");
             if (member.IsNullable)

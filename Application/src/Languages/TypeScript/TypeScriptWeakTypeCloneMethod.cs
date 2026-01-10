@@ -71,9 +71,25 @@ namespace Z3
                             {
                                 var parameterName = BaseTypeConverter.ToJSONCase(member.Name!);
                                 Formatter.WriteIndent(2);
-                                Output.WriteLine($"this.{parameterName} = new {member.ImplementedClass!.Name!}();");
-                                Formatter.WriteIndent(2);
-                                Output.WriteLine($"this.{parameterName}.CopyFromWeakType(other.{parameterName});");
+                                Output.WriteLine($"this.{parameterName}{Converter.GetDefaultMemberValue(member)};");
+                                if (member.IsArray || member.IsGeneric)
+                                {
+                                    Formatter.WriteIndent(2);
+                                    Output.WriteLine($"for (let x of other.{parameterName}) {{");
+                                    Formatter.WriteIndent(3);
+                                    Output.WriteLine($"let newX{Converter.GetDefaultMemberValue(member, true)};");
+                                    Formatter.WriteIndent(3);
+                                    Output.WriteLine($"newX.CopyFromWeakType(x);");
+                                    Formatter.WriteIndent(3);
+                                    Output.WriteLine($"this.{parameterName}.push(newX);");
+                                    Formatter.WriteIndent(2);
+                                    Output.WriteLine("}");
+                                }
+                                else
+                                {
+                                    Formatter.WriteIndent(2);
+                                    Output.WriteLine($"this.{parameterName}.CopyFromWeakType(other.{parameterName});");
+                                }
                             }
                         }
                     }
