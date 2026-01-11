@@ -90,6 +90,10 @@ namespace Z3
             if (info.Attributes.ContainsKey(nameof(DisplayNameAttribute)))
             {
                 label = info.Attributes[nameof(DisplayNameAttribute)].FixedArguments[0].Value!.ToString();
+                if (label!.StartsWith("bi-"))
+                {
+                    label = $"<i class=\"bi {label}\"></i>";
+                }
             }
 
             var editor = "input";
@@ -109,10 +113,20 @@ namespace Z3
                 Output.WriteLine($"<div class=\"col-12 compact-dialog{(string.IsNullOrEmpty(category) ? "" : $" category category-{category.ToLower().Replace(" ", "-")}")}\">");
             }
 
+            WriteIndent(++indent + 1);
+            Output.WriteLine($"<div>");
+
             if (!string.IsNullOrEmpty(label))
             {
                 WriteIndent(indent + 2);
-                Output.WriteLine($"<label class=\"compact-dialog\" i18n=\"edit|{label}\">{label}</label>");
+                if (label.StartsWith("<"))
+                {
+                    Output.WriteLine($"<label class=\"compact-dialog\">{label}</label>");
+                }
+                else
+                {
+                    Output.WriteLine($"<label class=\"compact-dialog\" i18n=\"edit|{label}\">{label}</label>");
+                }
             }
 
             WriteIndent(indent + 2);
@@ -139,6 +153,9 @@ namespace Z3
                     Output.Write($"[(ngModel)]=\"{fullName}\" ");
                 Output.WriteLine($"#{BaseTypeConverter.ToJSONCase(info.Name!)} id=\"{BaseTypeConverter.ToJSONCase(info.Name!)}\"></{editor}>");
             }
+
+            WriteIndent(indent-- + 1);
+            Output.WriteLine($"</div>");
 
             if (string.IsNullOrEmpty(category))
             {

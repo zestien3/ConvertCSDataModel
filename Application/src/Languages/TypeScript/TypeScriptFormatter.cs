@@ -87,7 +87,10 @@ namespace Z3
 
         protected override void OpenNamespace()
         {
-            // TypeScript does not support namespaces
+            if (ReferencedFiles.Count > 0)
+            {
+                Output.WriteLine();
+            }
         }
 
         protected override void OpenClass()

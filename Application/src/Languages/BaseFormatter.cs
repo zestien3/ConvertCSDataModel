@@ -110,11 +110,6 @@ namespace Z3
                 bt = bt.BaseType;
             }
 
-            if (ReferencedFiles.Count > 0)
-            {
-                Output.WriteLine();
-            }
-
             // Here we can write the namespace the class is defined in.
             OpenNamespace();
 
