@@ -193,25 +193,37 @@ namespace Z3
         /// <remarks>
         /// Since the strings are pretty short, we will not use a StringBuilder.
         /// </remarks>
-        /// <param name="s">The CamelCased string to split.</param>
+        /// <param name="_s">The CamelCased string to split.</param>
         /// <returns>A list of string making up the CamelCased string</returns>
         protected static List<string> SplitCamelCasing(string s)
         {
+            var _s = s.Trim();
             var result = new List<string>();
-            var stringPart = new string(s[0], 1);
+            var stringPart = new string(_s[0], 1);
             bool startOfStringPart = true;
-            for (int i = 1; i < s.Length; i++)
+            for (int i = 1; i < _s.Length; i++)
             {
-                startOfStringPart = startOfStringPart && char.IsAsciiLetterUpper(s[i]);
-                if (char.IsAsciiLetterUpper(s[i]) && !startOfStringPart)
+                while (_s[i] == ' ')
+                {
+                    if (_s[++i] != ' ')
+                    {
+                        startOfStringPart = true;
+                        result.Add(stringPart);
+                        stringPart = new string(_s[i++], 1);
+                        continue;
+                    }
+                }
+
+                startOfStringPart = startOfStringPart && char.IsAsciiLetterUpper(_s[i]);
+                if (char.IsAsciiLetterUpper(_s[i]) && !startOfStringPart)
                 {
                     startOfStringPart = true;
                     result.Add(stringPart);
-                    stringPart = new string(s[i], 1);
+                    stringPart = new string(_s[i], 1);
                 }
                 else
                 {
-                    stringPart += s[i];
+                    stringPart += _s[i];
                 }
             }
 
