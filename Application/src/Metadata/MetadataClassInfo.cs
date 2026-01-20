@@ -110,6 +110,27 @@ namespace Z3
                     }
                 }
             }
+
+            // Get the ButtonAttribute and store it.
+            if (attribute.Name == nameof(ButtonAttribute))
+            {
+                if (!attribute.NamedArguments.TryGetValue(nameof(ButtonAttribute.Color), out var color))
+                {
+                    throw new ArgumentException($"${nameof(ButtonAttribute)} must have it's ${nameof(ButtonAttribute.Color)} property set.");
+                }
+                if (!attribute.NamedArguments.TryGetValue(nameof(ButtonAttribute.Text), out var text))
+                {
+                    throw new ArgumentException($"${nameof(ButtonAttribute)} must have it's ${nameof(ButtonAttribute.Text)} property set.");
+                }
+
+                ButtonAttribute button = new()
+                {
+                    Color = (string)color.Value!,
+                    Text = (string)text.Value!
+                };
+
+                Buttons.Add(button);
+            }
         }
 
         public override void AllClassesLoaded(MetadataInfo? metadataInfo, int depthToLoad)
@@ -275,6 +296,8 @@ namespace Z3
         public byte? NullableContext { get; private set; }
 
         public List<UseInFrontendAttribute> UseInFrontend { get; private set; } = [];
+
+        public List<ButtonAttribute> Buttons { get; private set; } = [];
         
         public Dictionary<string, string> FixedConstructionParameters { get; private set; } = [];
     }

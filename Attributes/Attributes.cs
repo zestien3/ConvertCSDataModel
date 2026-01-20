@@ -28,6 +28,17 @@ namespace Zestien3.ConvertCSDataModel
     }
 
     /// <summary>
+    /// This attribute will add buttons to the generated UI.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
+    public class ButtonAttribute : Attribute
+    {
+        public string Color { get; set; } = string.Empty;
+        
+        public string Text { get; set; } = string.Empty;
+    }
+
+    /// <summary>
     /// This attribute will translate the class it is set on.
     /// </summary>
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Enum, AllowMultiple = true)]
