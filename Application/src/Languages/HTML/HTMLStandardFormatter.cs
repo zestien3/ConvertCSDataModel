@@ -101,6 +101,7 @@ namespace Z3
             WriteIndent(indent + 2);
             if (editor == "input")
             {
+                var readOnly = info.Attributes.ContainsKey(nameof(ReadOnlyAttribute)) && (bool)info.Attributes[nameof(ReadOnlyAttribute)].FixedArguments[0].Value!;
                 var classes = "form-control";
                 if (type == "checkbox")
                 {
@@ -112,6 +113,10 @@ namespace Z3
                 if (!string.IsNullOrEmpty(type))
                 {
                     Output.Write($" type=\"{type}\"");
+                }
+                if (readOnly)
+                {
+                    Output.Write(" readonly");
                 }
                 Output.WriteLine($" autocomplete=\"off\" #{BaseTypeConverter.ToJSONCase(info.Name!)} id=\"{BaseTypeConverter.ToJSONCase(info.Name!)}\" />");
             }
