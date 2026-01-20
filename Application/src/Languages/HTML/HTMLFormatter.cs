@@ -178,6 +178,14 @@ namespace Z3
                 WriteIndent(3);
                 Output.WriteLine("<button type=\"button\" class=\"btn btn-danger\" (click)=\"clickedCancel()\" i18n=\"generic|Cancel\">Cancel</button>");
                 WriteIndent(3);
+                ClassInfo.Buttons.ForEach(button =>
+                {
+                    var btnCallback = BaseTypeConverter.ToCamelCase(button.Text);
+                    var btnName = BaseTypeConverter.ToPascalCase(button.Text);
+                    Output.Write($"<button type=\"button\" class=\"btn btn-{button.Color} float-right\" (click)=\"clicked{btnCallback}()\" "); 
+                    Output.WriteLine($"#{btnName}Btn id=\"{btnName}Btn\" i18n=\"generic|{button.Text}\">{button.Text}</button>");
+                    WriteIndent(3);
+                });
                 Output.WriteLine("<button type=\"button\" class=\"btn btn-success float-right\" (click)=\"clickedOK()\" i18n=\"generic|OK\">OK</button>");
                 WriteIndent(2);
                 Output.WriteLine("</div>");
