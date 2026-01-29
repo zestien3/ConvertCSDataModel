@@ -70,8 +70,6 @@ namespace Z3
                             else
                             {
                                 var parameterName = BaseTypeConverter.ToJSONCase(member.Name!);
-                                Formatter.WriteIndent(2);
-                                Output.WriteLine($"this.{parameterName}{Converter.GetDefaultMemberValue(member)};");
                                 if (member.IsArray || member.IsGeneric)
                                 {
                                     Formatter.WriteIndent(2);
