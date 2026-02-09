@@ -63,9 +63,18 @@ namespace Z3
                         {
                             if (BaseTypeConverter.csStandardTypes.Contains(member.ImplementedClass?.Name ?? ""))
                             {
-                                var parameterName = BaseTypeConverter.ToJSONCase(member.Name!);
-                                Formatter.WriteIndent(2);
-                                Output.WriteLine($"this.{parameterName} = other.{parameterName};");
+                                if ((member.ImplementedClass?.Name == "System.DateTime") || (member.ImplementedClass?.Name == "System.DateOnly"))
+                                {
+                                    var parameterName = BaseTypeConverter.ToJSONCase(member.Name!);
+                                    Formatter.WriteIndent(2);
+                                    Output.WriteLine($"this.{parameterName} = new Date(other.{parameterName});");
+                                }
+                                else
+                                {
+                                    var parameterName = BaseTypeConverter.ToJSONCase(member.Name!);
+                                    Formatter.WriteIndent(2);
+                                    Output.WriteLine($"this.{parameterName} = other.{parameterName};");
+                                }
                             }
                             else
                             {

@@ -193,7 +193,7 @@ namespace Z3
         /// <remarks>
         /// Since the strings are pretty short, we will not use a StringBuilder.
         /// </remarks>
-        /// <param name="_s">The CamelCased string to split.</param>
+        /// <param name="s">The CamelCased string to split.</param>
         /// <returns>A list of string making up the CamelCased string</returns>
         protected static List<string> SplitCamelCasing(string s)
         {
