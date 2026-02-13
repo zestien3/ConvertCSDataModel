@@ -77,6 +77,10 @@ namespace Z3
             if (info.Attributes.ContainsKey(nameof(DisplayNameAttribute)))
             {
                 label = info.Attributes[nameof(DisplayNameAttribute)].FixedArguments[0].Value!.ToString();
+                if (label!.StartsWith("_"))
+                {
+                    label = string.Empty;
+                }
             }
 
             var editor = "input";

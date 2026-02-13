@@ -94,6 +94,10 @@ namespace Z3
                 {
                     label = $"<i class=\"bi {label}\"></i>";
                 }
+                if (label!.StartsWith("_"))
+                {
+                    label = string.Empty;
+                }
             }
 
             var editor = "input";
