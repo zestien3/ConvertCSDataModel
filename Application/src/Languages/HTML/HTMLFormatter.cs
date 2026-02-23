@@ -1,10 +1,6 @@
-using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.IO;
 using System.Linq;
-
-using Zestien3;
 using Zestien3.ConvertCSDataModel;
 
 namespace Z3

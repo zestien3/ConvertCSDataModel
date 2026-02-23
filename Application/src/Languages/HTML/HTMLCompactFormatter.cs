@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
-
+using System.Text.Json;
 using Zestien3;
 using Zestien3.ConvertCSDataModel;
 
@@ -101,9 +101,13 @@ namespace Z3
             }
 
             var editor = "input";
+            Dictionary<string, string>? parameters = [];
             if (info.Attributes.ContainsKey(nameof(EditorAttribute)))
             {
-                editor = info.Attributes[nameof(EditorAttribute)].FixedArguments[0].Value!.ToString();
+                var editorAttribute = info.Attributes[nameof(EditorAttribute)]!;
+                editor = editorAttribute.FixedArguments[0].Value!.ToString();
+                var json = editorAttribute?.FixedArguments[1].Value?.ToString() ?? "{}";
+                parameters = JsonSerializer.Deserialize<Dictionary<string,string>>(json);
             }
 
             var fullName = $"{BaseTypeConverter.ToJSONCase(info.DefiningClass!.Name!)}.{BaseTypeConverter.ToJSONCase(info.Name!)}";
@@ -155,6 +159,7 @@ namespace Z3
                 Output.Write($"<{editor} ");
                 if (!noNgModel)
                     Output.Write($"[(ngModel)]=\"{fullName}\" ");
+                parameters!.ToList().ForEach(kv => Output.Write($"[{kv.Key}]=\"{kv.Value}\" "));
                 Output.WriteLine($"#{BaseTypeConverter.ToJSONCase(info.Name!)} id=\"{BaseTypeConverter.ToJSONCase(info.Name!)}\"></{editor}>");
             }
 

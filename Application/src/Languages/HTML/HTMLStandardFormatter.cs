@@ -3,8 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
-
-using Zestien3;
+using System.Text.Json;
 using Zestien3.ConvertCSDataModel;
 
 namespace Z3
@@ -47,14 +46,13 @@ namespace Z3
                 }
 
                 var tab = (string) info.Attributes[nameof(PropertyTabAttribute)].FixedArguments[0].Value!;
-                WriteIndent(indent);
-                Output.WriteLine("<div class=\"row\">");
-                WriteIndent(indent + 1);
-                Output.WriteLine($"<label class=\"col-4 section\" i18n=\"edit|{tab}\">{tab}</label>");
-                WriteIndent(indent + 1);
-                Output.WriteLine("<div class=\"col-8\"><hr></div>");
-                WriteIndent(indent);
-                Output.WriteLine("</div>");
+                WriteIndent(indent, "<div class=\"row\">");
+                WriteIndent(indent + 1, "<div class=\"col-4\"><hr/></div>");
+                WriteIndent(indent + 1, "<div class=\"col-8 section\">");
+                WriteIndent(indent + 2, $"<label class=\"section\" i18n=\"edit|{tab}\">{tab}</label>");
+                WriteIndent(indent + 2, "<hr/>");
+                WriteIndent(indent + 1, "</div>");
+                WriteIndent(indent, "</div>");
             }
 
             if (addHideOptionForMember)
@@ -84,9 +82,13 @@ namespace Z3
             }
 
             var editor = "input";
+            Dictionary<string, string>? parameters = [];
             if (info.Attributes.ContainsKey(nameof(EditorAttribute)))
             {
-                editor = info.Attributes[nameof(EditorAttribute)].FixedArguments[0].Value!.ToString();
+                var editorAttribute = info.Attributes[nameof(EditorAttribute)]!;
+                editor = editorAttribute.FixedArguments[0].Value!.ToString();
+                var json = editorAttribute?.FixedArguments[1].Value?.ToString() ?? "{}";
+                parameters = JsonSerializer.Deserialize<Dictionary<string,string>>(json);
             }
 
             var fullName = $"{BaseTypeConverter.ToJSONCase(info.DefiningClass!.Name!)}.{BaseTypeConverter.ToJSONCase(info.Name!)}";
@@ -129,6 +131,7 @@ namespace Z3
                 Output.Write($"<{editor} ");
                 if (!noNgModel)
                     Output.Write($"[(ngModel)]=\"{fullName}\" ");
+                parameters!.ToList().ForEach(kv => Output.Write($"[{kv.Key}]=\"{kv.Value}\" "));
                 Output.WriteLine($"#{BaseTypeConverter.ToJSONCase(info.Name!)} id=\"{BaseTypeConverter.ToJSONCase(info.Name!)}\"></{editor}>");
             }
 

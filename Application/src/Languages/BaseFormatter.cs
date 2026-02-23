@@ -152,5 +152,11 @@ namespace Z3
         {
             Output.Write(new string(' ', IndentSize * level));
         }
+
+        public void WriteIndent(int level, string s)
+        {
+            Output.Write(new string(' ', IndentSize * level));
+            Output.WriteLine(s);
+        }
     }
 }
