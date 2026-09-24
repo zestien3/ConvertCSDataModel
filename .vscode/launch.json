@@ -9,6 +9,8 @@
       "args": [
 //*
         "-a",
+        "-v",
+        "Debug",
 /*/
         "-c",
         "TimeTracker.Models.Invoice.CreateOutgoingInvoiceModel",

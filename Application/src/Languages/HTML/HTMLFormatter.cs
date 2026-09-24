@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using Zestien3.ConvertCSDataModel;
@@ -88,7 +89,7 @@ namespace Z3
         protected override void OpenClass()
         {
             var title = $"{BaseTypeConverter.StripToMinimalName(ClassInfo!.Name!)}";
-            if (ClassInfo!.Attributes.TryGetValue("DisplayNameAttribute", out var displayName))
+            if (ClassInfo!.Attributes.TryGetValue(nameof(DisplayNameAttribute), out var displayName))
             {
                 title = $"{displayName.FixedArguments[0].Value!}";
             }
@@ -194,6 +195,21 @@ namespace Z3
         protected override void CloseNamespace()
         {
             // HTML does not use namespaces
+        }
+
+        protected static string GetLabelFromDisplayNameAttribute(MetadataMemberInfo info)
+        {
+            string? label = info.Attributes[nameof(DisplayNameAttribute)].FixedArguments[0].Value!.ToString();
+            if (label!.StartsWith("bi-"))
+            {
+                label = $"<i class=\"bi {label}\"></i>";
+            }
+            if (label!.StartsWith("_"))
+            {
+                label = string.Empty;
+            }
+
+            return label;
         }
     }
 }

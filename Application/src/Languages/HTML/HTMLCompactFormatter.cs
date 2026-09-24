@@ -89,15 +89,7 @@ namespace Z3
 
             if (info.Attributes.ContainsKey(nameof(DisplayNameAttribute)))
             {
-                label = info.Attributes[nameof(DisplayNameAttribute)].FixedArguments[0].Value!.ToString();
-                if (label!.StartsWith("bi-"))
-                {
-                    label = $"<i class=\"bi {label}\"></i>";
-                }
-                if (label!.StartsWith("_"))
-                {
-                    label = string.Empty;
-                }
+                label = GetLabelFromDisplayNameAttribute(info);
             }
 
             var editor = "input";
@@ -107,7 +99,14 @@ namespace Z3
                 var editorAttribute = info.Attributes[nameof(EditorAttribute)]!;
                 editor = editorAttribute.FixedArguments[0].Value!.ToString();
                 var json = editorAttribute?.FixedArguments[1].Value?.ToString() ?? "{}";
-                parameters = JsonSerializer.Deserialize<Dictionary<string,string>>(json);
+                try
+                {
+                    parameters = JsonSerializer.Deserialize<Dictionary<string, string>>(json);
+                }
+                catch
+                {
+                    Logger.LogDebug("EditorAttribute contains no JSON formatted parameters.");
+                }
             }
 
             var fullName = $"{BaseTypeConverter.ToJSONCase(info.DefiningClass!.Name!)}.{BaseTypeConverter.ToJSONCase(info.Name!)}";
