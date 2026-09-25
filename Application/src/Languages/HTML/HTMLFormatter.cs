@@ -140,7 +140,10 @@ namespace Z3
 
                 foreach (var memberInfo in ClassInfo!.Members)
                 {
-                    WriteMemberInfo(memberInfo);
+                    if (!memberInfo.DontSerialize)
+                    {
+                        WriteMemberInfo(memberInfo);
+                    }
                 }
 
                 WriteIndent(2);

@@ -188,34 +188,37 @@ namespace Z3
 
                 foreach (var member in ClassInfo.Members)
                 {
-                    if (BaseTypeConverter.csStandardTypes.Contains(member.ImplementedClass?.Name ?? ""))
+                    if (!member.DontSerialize)
                     {
-                        var parameterName = BaseTypeConverter.ToJSONCase(member.Name!);
-                        Formatter.WriteIndent(4);
-                        Output.WriteLine($"this.{parameterName} = {FirstParameterName}.{parameterName};");
-                    }
-                    else
-                    {
-                        var parameterName = BaseTypeConverter.ToJSONCase(member.Name!);
-                        Formatter.WriteIndent(4);
-                        Output.WriteLine($"this.{parameterName}{Converter.GetDefaultMemberValue(member)};");
-                        if (member.IsArray || member.IsGeneric)
+                        if (BaseTypeConverter.csStandardTypes.Contains(member.ImplementedClass?.Name ?? ""))
                         {
+                            var parameterName = BaseTypeConverter.ToJSONCase(member.Name!);
                             Formatter.WriteIndent(4);
-                            Output.WriteLine($"for (let x of {FirstParameterName}.{parameterName}) {{");
-                            Formatter.WriteIndent(5);
-                            Output.WriteLine($"let newX{Converter.GetDefaultMemberValue(member, true)};");
-                            Formatter.WriteIndent(5);
-                            Output.WriteLine($"newX.CopyFromWeakType(x);");
-                            Formatter.WriteIndent(5);
-                            Output.WriteLine($"this.{parameterName}.push(newX);");
-                            Formatter.WriteIndent(4);
-                            Output.WriteLine("}");
+                            Output.WriteLine($"this.{parameterName} = {FirstParameterName}.{parameterName};");
                         }
                         else
                         {
+                            var parameterName = BaseTypeConverter.ToJSONCase(member.Name!);
                             Formatter.WriteIndent(4);
-                            Output.WriteLine($"this.{parameterName}.CopyFromWeakType({FirstParameterName}.{parameterName});");
+                            Output.WriteLine($"this.{parameterName}{Converter.GetDefaultMemberValue(member)};");
+                            if (member.IsArray || member.IsGeneric)
+                            {
+                                Formatter.WriteIndent(4);
+                                Output.WriteLine($"for (let x of {FirstParameterName}.{parameterName}) {{");
+                                Formatter.WriteIndent(5);
+                                Output.WriteLine($"let newX{Converter.GetDefaultMemberValue(member, true)};");
+                                Formatter.WriteIndent(5);
+                                Output.WriteLine($"newX.CopyFromWeakType(x);");
+                                Formatter.WriteIndent(5);
+                                Output.WriteLine($"this.{parameterName}.push(newX);");
+                                Formatter.WriteIndent(4);
+                                Output.WriteLine("}");
+                            }
+                            else
+                            {
+                                Formatter.WriteIndent(4);
+                                Output.WriteLine($"this.{parameterName}.CopyFromWeakType({FirstParameterName}.{parameterName});");
+                            }
                         }
                     }
                 }

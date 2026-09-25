@@ -147,8 +147,17 @@ namespace Z3
                             var customAttribute = new MetadataAttributeInfo(attribute, Reader);
                             if (!string.IsNullOrEmpty(customAttribute.Name))
                             {
+                                if (attributes.ContainsKey(customAttribute.Name!))
+                                {
+                                    Logger.LogMessage($"Found double attribute {customAttribute.Name} on {classInfo.Name}.{Name}. Overwriting the existing one.");
+                                }
+                                else
+                                {
+                                    Logger.LogDebug($"Found attribute {customAttribute.Name} on {classInfo.Name}.{Name}");
+                                }
+
+                                // Any existing attributes with the same name will be overwritten.
                                 attributes[customAttribute.Name!] = customAttribute;
-                                Logger.LogDebug($"Found attribute {customAttribute.Name} on {classInfo.Name}.{Name}");
                             }
                         }
 

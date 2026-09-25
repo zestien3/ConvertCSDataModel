@@ -26,10 +26,6 @@ namespace Z3
                                                                            "undefined", "new Date()", "new Date()", "\"00000000-0000-0000-0000-000000000000\"",
                                                                            "0", "new File()", "\"#000000\"" };
 
-        private static readonly List<string> tsGenericArrayTypes = new() { BaseTypeConverter.GetGenericType(typeof(List<int>).FullName!),
-                                                                           BaseTypeConverter.GetGenericType(typeof(IReadOnlyList<int>).FullName!),
-                                                                           BaseTypeConverter.GetGenericType(typeof(IList<int>).FullName!) };
-
         public TypeScriptTypeConverter()
         {
             if (tsStandardTypes.Count != csStandardTypes.Count)
@@ -148,37 +144,6 @@ namespace Z3
             }
 
             return result.ToString();
-        }
-
-        /// <summary>
-        /// Get a code snippet representing the check for a specific type.
-        /// </summary>
-        /// <param name="member">The member for which the check must be constructed.</param>
-        /// <returns>A code snippet to check the real type of the given member.</returns>
-        public string GetUnionTypeCheck(MetadataMemberInfo member)
-        {
-            var result = string.Empty;
-            var tsType = this.ConvertType(member);
-
-            if (IsArray(tsType))
-            {
-                result = $"{BaseTypeConverter.ToJSONCase(member.Name!)} instanceof Array && ";
-                tsType = tsType[..^2];
-
-                if (tsStandardTypes.Contains(tsType) && (tsType != "Date") && (tsType != "File"))
-                {
-                    return result + $"typeof {BaseTypeConverter.ToJSONCase(member.Name!)}[0] === \"{tsType}\"";
-                }
-
-                return result + $"{BaseTypeConverter.ToJSONCase(member.Name!)}[0] instanceof {tsType}";
-            }
-
-            if (tsStandardTypes.Contains(tsType) && (tsType != "Date") && (tsType != "File"))
-            {
-                return $"typeof {BaseTypeConverter.ToJSONCase(member.Name!)} === \"{tsType}\"";
-            }
-
-            return $"{BaseTypeConverter.ToJSONCase(member.Name!)} instanceof {tsType}";
         }
 
         /// <summary>
